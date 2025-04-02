@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { inspectionFormAPI } from './api';
+import { Box, Typography, Button, Avatar } from '@mui/material';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 const AVPDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -174,15 +176,23 @@ const AVPDashboard = ({ user, onLogout }) => {
             <div className="font-bold text-2xl">AGI</div>
             <div className="ml-2 text-sm font-bold">GREENPAC</div>
           </div>
-          <div className="flex items-center">
-            <span className="mr-4">Welcome, {user.name}</span>
-            <button
-              onClick={onLogout}
-              className="bg-red-500 hover:bg-red-600 text-white text-sm py-1 px-3 rounded"
-            >
-              Logout
-            </button>
-          </div>
+          <Box display="flex" alignItems="center" gap={2}>
+  <Avatar alt={user.name} src={user.avatarUrl} />
+  
+  <Typography variant="body1">
+    Welcome, {user.name}
+  </Typography>
+
+  <Button
+    onClick={onLogout}
+    variant="contained"
+    color="error"
+    size="small"
+    startIcon={<LogoutIcon />}
+  >
+    Logout
+  </Button>
+</Box>
         </div>
       </header>
       

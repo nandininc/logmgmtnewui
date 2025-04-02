@@ -31,7 +31,7 @@ const InspectionFormLayout = ({ user, onLogout, children }) => {
         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <div className="flex items-center">
             <div className="font-bold text-2xl">AGI</div>
-            <div className="ml-2 text-sm font-bold">GREENPAC</div>
+            <div className="ml-2 text-sm font-bold">E-Log</div>
           </div>
           <div className="flex items-center">
             <button

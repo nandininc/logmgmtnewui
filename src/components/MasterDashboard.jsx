@@ -1,5 +1,32 @@
+// MasterDashboard.js
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { inspectionFormAPI } from './api';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Line, Bar, Pie } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const formatTimestamp = (timestamp) => {
   if (!timestamp) return 'N/A';
@@ -8,232 +35,217 @@ const formatTimestamp = (timestamp) => {
 };
 
 const MasterDashboard = ({ user, onLogout }) => {
-  const [pendingForms, setPendingForms] = useState([]);
-  const [recentActivity, setRecentActivity] = useState([]);
-  const [metrics, setMetrics] = useState({
-    approvedToday: 0,
-    avgApprovalTime: 0,
-    qualityIssues: 0,
-    complianceRate: 0,
-  });
+  const navigate = useNavigate();
+  const [allForms, setAllForms] = useState([]);
+  const [metrics, setMetrics] = useState({});
+  const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('dashboard'); // <-- controls visible section
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        const submittedForms = await inspectionFormAPI.getFormsByStatus('SUBMITTED');
-        setPendingForms(submittedForms);
-
-        const allForms = await inspectionFormAPI.getAllForms();
-        const sortedForms = [...allForms].sort((a, b) => {
-          const dateA = a.reviewedAt || a.submittedAt || new Date(0);
-          const dateB = b.reviewedAt || b.submittedAt || new Date(0);
-          return new Date(dateB) - new Date(dateA);
-        });
-        setRecentActivity(sortedForms.slice(0, 5));
-        calculateMetrics(allForms);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
   }, []);
 
-  const calculateMetrics = (forms) => {
+  const fetchDashboardData = async () => {
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const approvedToday = forms.filter(form => {
-        if (!form.reviewedAt || form.status !== 'APPROVED') return false;
-        const reviewDate = new Date(form.reviewedAt);
-        reviewDate.setHours(0, 0, 0, 0);
-        return reviewDate.getTime() === today.getTime();
-      }).length;
-
-      const approvedForms = forms.filter(form =>
-        form.status === 'APPROVED' && form.submittedAt && form.reviewedAt
-      );
-
-      let totalApprovalTime = 0;
-      approvedForms.forEach(form => {
-        const submittedTime = new Date(form.submittedAt).getTime();
-        const reviewedTime = new Date(form.reviewedAt).getTime();
-        const diffHours = (reviewedTime - submittedTime) / (1000 * 60 * 60);
-        totalApprovalTime += diffHours;
-      });
-
-      const avgTime = approvedForms.length > 0
-        ? (totalApprovalTime / approvedForms.length).toFixed(1)
-        : 0;
-
-      const qualityIssues = forms.filter(form => form.status === 'REJECTED').length;
-      const decidedForms = forms.filter(form =>
-        form.status === 'APPROVED' || form.status === 'REJECTED'
-      );
-
-      const complianceRate = decidedForms.length > 0
-        ? ((decidedForms.length - qualityIssues) / decidedForms.length * 100).toFixed(1)
-        : 100;
-
-      setMetrics({
-        approvedToday,
-        avgApprovalTime: avgTime,
-        qualityIssues,
-        complianceRate,
-      });
-    } catch (error) {
-      console.error('Error calculating metrics:', error);
-      setMetrics({
-        approvedToday: 0,
-        avgApprovalTime: 0,
-        qualityIssues: 0,
-        complianceRate: 0,
-      });
+      setLoading(true);
+      const allFormsData = await inspectionFormAPI.getAllForms();
+      setAllForms(allFormsData);
+      calculateMetrics(allFormsData);
+      prepareChartData(allFormsData);
+    } catch (err) {
+      console.error('Dashboard Error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getActivityDescription = (form) => {
-    if (form.status === 'APPROVED') return `Document No. ${form.documentNo} approved`;
-    if (form.status === 'REJECTED') return `Document No. ${form.documentNo} rejected`;
-    if (form.status === 'SUBMITTED') return `Document No. ${form.documentNo} submitted for approval`;
-    return `Document No. ${form.documentNo} created`;
+  const calculateMetrics = (forms) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const approvedForms = forms.filter(f => f.status === 'APPROVED');
+    const approvedToday = approvedForms.filter(f => new Date(f.reviewedAt).toDateString() === today.toDateString()).length;
+    const totalApprovalTime = approvedForms.reduce((acc, f) => acc + ((new Date(f.reviewedAt) - new Date(f.submittedAt)) / 36e5), 0);
+    const qualityIssues = forms.filter(f => f.status === 'REJECTED').length;
+    const decidedForms = forms.filter(f => ['APPROVED', 'REJECTED'].includes(f.status)).length;
+    const complianceRate = decidedForms > 0 ? ((decidedForms - qualityIssues) / decidedForms * 100).toFixed(1) : 100;
+    setMetrics({
+      approvedToday,
+      avgApprovalTime: approvedForms.length ? (totalApprovalTime / approvedForms.length).toFixed(1) : 0,
+      qualityIssues,
+      complianceRate,
+      totalForms: forms.length,
+      approvedForms: approvedForms.length,
+      rejectedForms: qualityIssues,
+      pendingForms: forms.filter(f => f.status === 'SUBMITTED').length
+    });
   };
 
-  const getActivityPerson = (form) => {
-    if (form.status === 'APPROVED' || form.status === 'REJECTED') return `By ${form.reviewedBy}`;
-    if (form.status === 'SUBMITTED') return `By ${form.submittedBy}`;
-    return `By ${form.productionOperator || 'Unknown'}`;
+  const prepareChartData = (forms) => {
+    const today = new Date();
+    const last6Months = [];
+    const monthlySubmissions = Array(6).fill(0);
+    const monthlyApprovals = Array(6).fill(0);
+
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      last6Months.push(date.toLocaleString('default', { month: 'short' }));
+    }
+
+    forms.forEach(form => {
+      const submittedDate = new Date(form.submittedAt);
+      const reviewedDate = new Date(form.reviewedAt);
+
+      let subIndex = 5 - ((today.getMonth() - submittedDate.getMonth()) + 12 * (today.getFullYear() - submittedDate.getFullYear()));
+      if (form.submittedAt && subIndex >= 0 && subIndex < 6) monthlySubmissions[subIndex]++;
+
+      let revIndex = 5 - ((today.getMonth() - reviewedDate.getMonth()) + 12 * (today.getFullYear() - reviewedDate.getFullYear()));
+      if (form.reviewedAt && form.status === 'APPROVED' && revIndex >= 0 && revIndex < 6) monthlyApprovals[revIndex]++;
+    });
+
+    const statusCounts = ['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED'].reduce((acc, status) => {
+      acc[status] = forms.filter(f => f.status === status).length;
+      return acc;
+    }, {});
+
+    const variants = {};
+    forms.forEach(f => {
+      if (f.variant) variants[f.variant] = (variants[f.variant] || 0) + 1;
+    });
+
+    setChartData({
+      statusCounts,
+      last6Months,
+      monthlySubmissions,
+      monthlyApprovals,
+      variantLabels: Object.keys(variants),
+      variantCounts: Object.values(variants)
+    });
   };
+
+  const handleViewForm = (formId) => navigate(`/inspection-form/${formId}`);
+
+  const getStatusClass = (status) => {
+    return {
+      DRAFT: 'text-gray-600',
+      SUBMITTED: 'text-blue-600',
+      APPROVED: 'text-green-600',
+      REJECTED: 'text-red-600'
+    }[status] || 'text-gray-600';
+  };
+
+  const filteredForms = allForms.filter(form => {
+    if (filterStatus !== 'all' && form.status !== filterStatus) return false;
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      form.documentNo?.toLowerCase().includes(q) ||
+      form.variant?.toLowerCase().includes(q) ||
+      form.product?.toLowerCase().includes(q)
+    );
+  });
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="w-64 bg-gray-800 text-white p-4">
-        <h2 className="text-2xl font-bold mb-6">Admin Panel</h2>
-        <ul className="space-y-4">
-          <li>
-            <button onClick={() => setActiveTab('dashboard')} className="hover:text-indigo-300">
-              Dashboard
-            </button>
-          </li>
-          <li>
-            <button onClick={() => setActiveTab('forms')} className="hover:text-indigo-300">
-              All Forms
-            </button>
-          </li>
-          <li>
-            <button onClick={onLogout} className="hover:text-red-400">
-              Logout
-            </button>
-          </li>
-        </ul>
+    <div className="p-6">
+      <div className="flex justify-between mb-4">
+        <h1 className="text-2xl font-bold">{activeTab === 'dashboard' ? 'Dashboard' : 'All Forms'}</h1>
+        <button onClick={onLogout} className="bg-red-600 text-white px-4 py-2 rounded">Logout</button>
       </div>
 
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col bg-gray-100">
-        {/* Top Navbar */}
-        <div className="bg-gray-100 shadow px-6 py-4 flex justify-between items-center ">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-800">
-              {activeTab === 'dashboard' ? 'Master Dashboard' : 'All Forms'}
-            </h1>
-            <p className="text-sm text-gray-500">Welcome, {user?.name || 'Admin Manager'}</p>
+      <div className="mb-6 space-x-4">
+        <button onClick={() => setActiveTab('dashboard')} className={`px-4 py-2 rounded ${activeTab === 'dashboard' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>Dashboard</button>
+        <button onClick={() => setActiveTab('forms')} className={`px-4 py-2 rounded ${activeTab === 'forms' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>All Forms</button>
+      </div>
+
+      {loading ? (
+        <p>Loading...</p>
+      ) : activeTab === 'dashboard' ? (
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Object.entries(metrics).map(([key, val]) => (
+              <div key={key} className="bg-white p-4 shadow rounded">
+                <p className="text-sm text-gray-500 capitalize">{key.replace(/([A-Z])/g, ' $1')}</p>
+                <p className="text-xl font-bold">{val}</p>
+              </div>
+            ))}
           </div>
-          <button
-            onClick={onLogout}
-            className="text-sm bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600"
-          >
-            Logout
-          </button>
-        </div>
 
-        {/* Content switcher */}
-        <div className="p-6 flex-1 overflow-auto">
-          {loading ? (
-            <div className="text-center text-gray-500">Loading data...</div>
-          ) : activeTab === 'dashboard' ? (
-            <>
-              {/* Dashboard Metrics */}
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <div className="bg-white p-4 rounded shadow">
-                  <h2 className="text-lg font-bold mb-4">Reports Pending Approval</h2>
-                  {pendingForms.length === 0 ? (
-                    <p className="text-gray-500 text-center">No pending forms</p>
-                  ) : (
-                    <ul className="divide-y divide-gray-200">
-                      {pendingForms.slice(0, 5).map((form) => (
-                        <li key={form.id} className="py-3">
-                          <p className="text-sm font-medium text-gray-800">{form.documentNo}</p>
-                          <p className="text-sm text-gray-500">{form.variant} - {form.lineNo} - {form.product}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                <div className="bg-white p-4 rounded shadow">
-                  <h2 className="text-lg font-bold mb-4">Quality Metrics</h2>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Approved Today</p>
-                      <p className="text-xl font-bold">{metrics.approvedToday}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Avg Approval Time</p>
-                      <p className="text-xl font-bold">{metrics.avgApprovalTime}h</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Quality Issues</p>
-                      <p className="text-xl font-bold">{metrics.qualityIssues}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Compliance Rate</p>
-                      <p className="text-xl font-bold">{metrics.complianceRate}%</p>
-                    </div>
-                  </div>
-                </div>
+          {chartData && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white p-4 shadow rounded">
+                <h3 className="font-semibold mb-4">Form Status</h3>
+                <Pie data={{
+                  labels: Object.keys(chartData.statusCounts),
+                  datasets: [{
+                    data: Object.values(chartData.statusCounts),
+                    backgroundColor: ['#60A5FA', '#34D399', '#F87171', '#D1D5DB']
+                  }]
+                }} />
               </div>
 
-              {/* Activity Log */}
-              <div className="mt-6 bg-white p-4 rounded shadow">
-                <h2 className="text-lg font-bold mb-4">Recent Activity</h2>
-                {recentActivity.length === 0 ? (
-                  <p className="text-gray-500 text-center">No recent activity</p>
-                ) : (
-                  <ul className="divide-y divide-gray-200">
-                    {recentActivity.map((form) => (
-                      <li key={form.id} className="py-3">
-                        <div className="flex justify-between">
-                          <div>
-                            <p className="text-sm font-medium">{getActivityDescription(form)}</p>
-                            <p className="text-sm text-gray-500">{getActivityPerson(form)}</p>
-                          </div>
-                          <p className="text-sm text-gray-400">
-                            {formatTimestamp(form.reviewedAt || form.submittedAt)}
-                          </p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+              <div className="bg-white p-4 shadow rounded">
+                <h3 className="font-semibold mb-4">Monthly Trends</h3>
+                <Line data={{
+                  labels: chartData.last6Months,
+                  datasets: [
+                    { label: 'Submissions', data: chartData.monthlySubmissions, borderColor: '#60A5FA', fill: false },
+                    { label: 'Approvals', data: chartData.monthlyApprovals, borderColor: '#34D399', fill: false }
+                  ]
+                }} />
               </div>
-            </>
-          ) : (
-            <>
-              {/* Dummy All Forms Section (you can expand this later) */}
-              <div className="bg-white p-6 rounded shadow text-center text-gray-600">
-                <h2 className="text-lg font-bold mb-2">All Forms View</h2>
-                <p>You can add detailed form list or search features here.</p>
-              </div>
-            </>
+            </div>
           )}
         </div>
-      </div>
+      ) : (
+        <div className="bg-white p-4 rounded shadow">
+          <div className="mb-4 flex items-center">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border px-3 py-2 mr-4 rounded w-1/2"
+            />
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="border px-3 py-2 rounded"
+            >
+              <option value="all">All</option>
+              <option value="DRAFT">Draft</option>
+              <option value="SUBMITTED">Submitted</option>
+              <option value="APPROVED">Approved</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </div>
+          <table className="w-full table-auto text-sm">
+            <thead>
+              <tr className="bg-gray-100 text-left">
+                <th className="p-2">Document No</th>
+                <th className="p-2">Product</th>
+                <th className="p-2">Variant</th>
+                <th className="p-2">Status</th>
+                <th className="p-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredForms.map((f) => (
+                <tr key={f.id} className="border-t">
+                  <td className="p-2">{f.documentNo}</td>
+                  <td className="p-2">{f.product}</td>
+                  <td className="p-2">{f.variant}</td>
+                  <td className={`p-2 font-medium ${getStatusClass(f.status)}`}>{f.status}</td>
+                  <td className="p-2">
+                    <button onClick={() => handleViewForm(f.id)} className="text-blue-600 hover:underline">View</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

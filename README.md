@@ -238,8 +238,8 @@ The production-ready files will be generated in the `build` directory.
 
 ### Contact Information
 For support, contact Swajyot Technologies:
-- Email: support@swajyot-tech.com
-- Phone: +XX-XXXX-XXXX
+- Email: nandininc@swajyot.com
+- Phone: +91-81972-20145
 
 ## License
 Built by Swajyot Technologies. © 2002 – 2025.

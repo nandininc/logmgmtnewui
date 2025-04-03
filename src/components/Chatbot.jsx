@@ -85,10 +85,27 @@ const Chatbot = ({ user }) => {
       return 'To log out, click the "Logout" button at the top right corner of the page.';
     } else if (normalizedMessage.includes('thank')) {
       return "You're welcome! If you need anything else, I'm here to help.";
+    } else if (normalizedMessage.includes('dashboard')) {
+      return 'To access the dashboard, click on the "Dashboard" link in the main navigation menu.';
+    } else if (normalizedMessage.includes('settings')) {
+      return 'You can adjust your settings by clicking on the "Settings" icon located in the top right corner.';
+    } else if (normalizedMessage.includes('profile')) {
+      return 'To view or edit your profile, click on your name in the top right corner and select "Profile".';
+    } else if (normalizedMessage.includes('error') || normalizedMessage.includes('issue')) {
+      return 'I’m sorry to hear you’re experiencing an issue. Can you describe the problem in more detail so I can assist you better?';
+    } else if (normalizedMessage.includes('contact')) {
+      return 'You can contact support by clicking the "Contact Us" link in the footer, or by sending an email to support@example.com.';
+    } else if (normalizedMessage.includes('notification') || normalizedMessage.includes('alert')) {
+      return 'To view your notifications, click on the bell icon in the top right corner of the page.';
+    } else if (normalizedMessage.includes('language')) {
+      return 'To change your language preferences, go to the "Settings" section and select "Language".';
+    } else if (normalizedMessage.includes('save')) {
+      return 'Don’t forget to save your work regularly by clicking the "Save" button at the bottom of the page!';
     } else {
       return "I'm not sure I understand. Could you please provide more details or try asking in a different way?";
     }
-  };
+};
+
 
   const toggleChat = () => {
     setIsOpen(prev => !prev);

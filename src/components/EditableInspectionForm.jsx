@@ -322,6 +322,216 @@ const EditableInspectionForm = () => {
         }
     };
 
+    // Print handler function
+    const handlePrint = () => {
+        // Create a new window for printing
+        const printWindow = window.open('', '_blank');
+        
+        // Get the current date and time for the print header
+        const printDate = new Date().toLocaleString();
+        
+        // Create printable content - only include the tables
+        const printContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Inspection Form ${formData.documentNo}</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        font-size: 11px;
+                        margin: 0;
+                        padding: 20px;
+                    }
+                    .print-header {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 20px;
+                        border-bottom: 1px solid #000;
+                        padding-bottom: 10px;
+                    }
+                    .company-info {
+                        text-align: center;
+                        margin-bottom: 10px;
+                    }
+                    .company-info h1 {
+                        font-size: 16px;
+                        margin: 0;
+                    }
+                    .company-info p {
+                        font-size: 12px;
+                        margin: 5px 0;
+                    }
+                    .print-timestamp {
+                        font-size: 10px;
+                        text-align: right;
+                        margin-top: 5px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 20px;
+                    }
+                    th, td {
+                        border: 1px solid #000;
+                        padding: 5px;
+                        text-align: left;
+                    }
+                    th {
+                        background-color: #f0f0f0;
+                        font-weight: bold;
+                    }
+                    .form-info {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        border: 1px solid #000;
+                        margin-bottom: 20px;
+                    }
+                    .form-info div {
+                        padding: 5px;
+                        border-right: 1px solid #000;
+                        border-bottom: 1px solid #000;
+                    }
+                    .form-info span.label {
+                        font-weight: bold;
+                    }
+                    .form-info div:nth-child(3n) {
+                        border-right: none;
+                    }
+                    .form-info div:nth-last-child(-n+3) {
+                        border-bottom: none;
+                    }
+                    .signatures {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-top: 30px;
+                    }
+                    .signature-field {
+                        border-top: 1px solid #000;
+                        width: 150px;
+                        padding-top: 5px;
+                        text-align: center;
+                    }
+                    /* Print-specific styles */
+                    @media print {
+                        body {
+                            padding: 0;
+                            margin: 0;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="print-header">
+                    <div>
+                        <strong>Document No:</strong> ${formData.documentNo}
+                        <br />
+                        <strong>Issuance No:</strong> ${formData.issuanceNo}
+                    </div>
+                    <div class="company-info">
+                        <h1>AGI Greenpac Limited</h1>
+                        <p>Unit :- AGI Speciality Glas Division</p>
+                        <p><strong>TITLE:</strong> FIRST ARTICLE INSPECTION REPORT - COATING</p>
+                    </div>
+                    <div>
+                        <strong>Approval Date:</strong> ${formData.reviewedBy ? formData.reviewedAt : ''}
+                        <br />
+                        <strong>Status:</strong> ${formData.status}
+                    </div>
+                </div>
+                
+                <div class="form-info">
+                    <div><span class="label">Date:</span> ${formData.inspectionDate}</div>
+                    <div><span class="label">Shift:</span> ${formData.shift}</div>
+                    <div><span class="label">Line No:</span> ${formData.lineNo}</div>
+                    <div><span class="label">Product:</span> ${formData.product}</div>
+                    <div><span class="label">Variant:</span> ${formData.variant}</div>
+                    <div><span class="label">Customer:</span> ${formData.customer}</div>
+                    <div><span class="label">Size No:</span> ${formData.sizeNo}</div>
+                    <div></div>
+                    <div><span class="label">Sample Size:</span> ${formData.sampleSize}</div>
+                </div>
+
+                <h3>Lacquer / Dye Details</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>S.No.</th>
+                            <th>Lacquer / Dye</th>
+                            <th>wt.</th>
+                            <th>Batch No.</th>
+                            <th>Expiry Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${formData.lacquers.map(lacquer => `
+                            <tr>
+                                <td>${lacquer.id}</td>
+                                <td>${lacquer.name}</td>
+                                <td>${lacquer.weight}</td>
+                                <td>${lacquer.batchNo}</td>
+                                <td>${lacquer.expiryDate}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <h3>Characteristics</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>S.No.</th>
+                            <th>Characteristic</th>
+                            <th>Observations</th>
+                            <th>Comments</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${formData.characteristics.map(char => `
+                            <tr>
+                                <td>${char.id}</td>
+                                <td>${char.name}</td>
+                                <td>${char.id === 6 ? 
+                                    `Body: ${char.bodyThickness || ''}<br>Bottom: ${char.bottomThickness || ''}` : 
+                                    char.observation}</td>
+                                <td>${char.comments}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <div class="signatures">
+                    <div class="signature-field">
+                        QA Executive: ${formData.qaExecutive || ''}
+                    </div>
+                    <div class="signature-field">
+                        Production Operator: ${formData.productionOperator || ''}
+                    </div>
+                </div>
+
+                <div class="print-timestamp">
+                    Printed on: ${printDate}
+                    ${formData.reviewedBy ? `<br>Reviewed by: ${formData.reviewedBy}` : ''}
+                </div>
+            </body>
+            </html>
+        `;
+
+        // Write to the new window and print
+        printWindow.document.open();
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        
+        // Wait for content to load before printing
+        printWindow.onload = function() {
+            printWindow.print();
+            // Optional: close the window after printing
+            // printWindow.onafterprint = function() {
+            //   printWindow.close();
+            // };
+        };
+    };
+
     // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -835,13 +1045,29 @@ const EditableInspectionForm = () => {
     
                     {/* Action Buttons */}
                     <div className="p-4 bg-gray-100 flex justify-between">
-                        <button
-                            type="button"
-                            onClick={() => navigate('/forms')}
-                            className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-gray-300"
-                        >
-                            Back to Forms
-                        </button>
+                        <div className="flex space-x-2">
+                            <button
+                                type="button"
+                                onClick={() => navigate('/forms')}
+                                className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-gray-300"
+                            >
+                                Back to Forms
+                            </button>
+                            
+                            {/* Add Print Button - Only visible when form is approved */}
+                            {formData.status === 'APPROVED' && formData.reviewedBy && (
+                                <button
+                                    type="button"
+                                    onClick={handlePrint}
+                                    className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-yellow-300 flex items-center"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                    </svg>
+                                    Print Tables
+                                </button>
+                            )}
+                        </div>
                         
                         <div className="space-x-2">
                             {permissions.canReject && (

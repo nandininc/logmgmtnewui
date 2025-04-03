@@ -35,11 +35,12 @@ const InspectionFormLayout = ({ user, onLogout, children }) => {
           </div>
           <div className="flex items-center">
             <button
-              onClick={() => window.history.back()}
+              onClick={() => window.location.href = '/'}
               className="mr-4 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm py-1 px-3 rounded"
             >
               Back to Dashboard
             </button>
+
             <button
               onClick={onLogout}
               className="bg-red-500 hover:bg-red-600 text-white text-sm py-1 px-3 rounded"
@@ -74,7 +75,7 @@ const AuthRouter = () => {
   const { user, isAuthenticated, logout, isOperator, isQA, isAVP, isMaster, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   useEffect(() => {
     if (loading) return; // Don't do anything while loading
 
@@ -84,9 +85,10 @@ const AuthRouter = () => {
         if (isOperator) navigate('/operator', { replace: true });
         else if (isQA) navigate('/qa', { replace: true });
         else if (isAVP) navigate('/avp', { replace: true });
+        else if (isMaster) navigate('/master', { replace: true });
       }
     } else {
-     
+
       if (location.pathname !== '/') {
         navigate('/', { replace: true });
       }
@@ -166,11 +168,11 @@ const AuthRouter = () => {
 // Login Page
 const LoginPage = () => {
   const { login } = useAuth();
-  
+
   const handleLogin = (userData) => {
     login(userData);
   };
-  
+
   return <LoginForm onLogin={handleLogin} />;
 };
 

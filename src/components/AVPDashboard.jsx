@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { inspectionFormAPI } from './api';
-import { Box, Typography, Button, Avatar } from '@mui/material';
-import LogoutIcon from '@mui/icons-material/Logout';
+import { DashboardLayout, formatTimestamp } from './SharedComponents';
 
 const AVPDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -125,25 +124,6 @@ const AVPDashboard = ({ user, onLogout }) => {
     navigate('/forms');
   };
   
-  // Format timestamp for display
-  const formatTimestamp = (timestamp) => {
-    if (!timestamp) return '';
-    
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffHrs = diffMs / (1000 * 60 * 60);
-    
-    if (diffHrs < 24) {
-      // Show as hours ago
-      const hours = Math.floor(diffHrs);
-      return hours === 0 ? 'Just now' : `${hours}h ago`;
-    } else {
-      // Show as date
-      return date.toLocaleDateString();
-    }
-  };
-  
   // Get activity description
   const getActivityDescription = (form) => {
     if (form.status === 'APPROVED') {
@@ -169,142 +149,51 @@ const AVPDashboard = ({ user, onLogout }) => {
   };
   
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-red-300 shadow fixed top: 0 w-full">
-        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div className="flex items-center">
-            <div className="font-bold text-2xl">AGI</div>
-            <div className="ml-2 text-sm font-bold">GREENPAC</div>
-          </div>
-          <Box display="flex" alignItems="center" gap={2}>
-  <Avatar alt={user.name} src={user.avatarUrl} />
-  
-  <Typography variant="body1">
-    Welcome, {user.name}
-  </Typography>
-
-  <Button
-    onClick={onLogout}
-    variant="contained"
-    color="error"
-    size="small"
-    startIcon={<LogoutIcon />}
-  >
-    Logout
-  </Button>
-</Box>
+    <DashboardLayout 
+      user={user} 
+      onLogout={onLogout} 
+      title="AVP Dashboard" 
+      subtitle="Quality Assurance & Systems Management"
+    >
+      {loading ? (
+        <div className="py-12 text-center text-gray-500">
+          Loading dashboard data...
         </div>
-      </header>
-      
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900">AVP Dashboard</h1>
-          <p className="mt-2 text-gray-600">Quality Assurance & Systems Management</p>
-        </div>
-        
-        {loading ? (
-          <div className="py-12 text-center text-gray-500">
-            Loading dashboard data...
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                <div className="px-4 py-5 sm:p-6">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-medium text-gray-900">Reports Pending Approval</h3>
-                    <button
-                      onClick={handleViewAllForms}
-                      className="text-sm text-blue-600 hover:text-blue-800"
-                    >
-                      View All
-                    </button>
-                  </div>
-                  <div className="mt-4">
-                    {pendingForms.length === 0 ? (
-                      <div className="text-center py-4 text-gray-500">
-                        No reports pending approval
-                      </div>
-                    ) : (
-                      <ul className="divide-y divide-gray-200">
-                        {pendingForms.slice(0, 5).map(form => (
-                          <li key={form.id} className="py-3 flex justify-between items-center">
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">{form.documentNo}</p>
-                              <p className="text-sm text-gray-500">
-                                {form.variant} - Line {form.lineNo} - {form.product}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => handleReviewForm(form.id)}
-                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            >
-                              Review
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                <div className="px-4 py-5 sm:p-6">
-                  <h3 className="text-lg font-medium text-gray-900">Quality Metrics</h3>
-                  <div className="mt-4">
-                    <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                      <div className="bg-gray-50 overflow-hidden shadow rounded-lg p-4">
-                        <dt className="text-sm font-medium text-gray-500 truncate">Reports Approved Today</dt>
-                        <dd className="mt-1 text-3xl font-semibold text-gray-900">{metrics.approvedToday}</dd>
-                      </div>
-                      <div className="bg-gray-50 overflow-hidden shadow rounded-lg p-4">
-                        <dt className="text-sm font-medium text-gray-500 truncate">Average Approval Time</dt>
-                        <dd className="mt-1 text-3xl font-semibold text-gray-900">{metrics.avgApprovalTime}h</dd>
-                      </div>
-                      <div className="bg-gray-50 overflow-hidden shadow rounded-lg p-4">
-                        <dt className="text-sm font-medium text-gray-500 truncate">Quality Issues Reported</dt>
-                        <dd className="mt-1 text-3xl font-semibold text-gray-900">{metrics.qualityIssues}</dd>
-                      </div>
-                      <div className="bg-gray-50 overflow-hidden shadow rounded-lg p-4">
-                        <dt className="text-sm font-medium text-gray-500 truncate">Compliance Rate</dt>
-                        <dd className="mt-1 text-3xl font-semibold text-gray-900">{metrics.complianceRate}%</dd>
-                      </div>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-6 bg-white shadow sm:rounded-lg">
+      ) : (
+        <>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
               <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
-                <div className="mt-4 border-t border-gray-200 pt-4">
-                  {recentActivity.length === 0 ? (
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-medium text-gray-900">Reports Pending Approval</h3>
+                  <button
+                    onClick={handleViewAllForms}
+                    className="text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    View All
+                  </button>
+                </div>
+                <div className="mt-4">
+                  {pendingForms.length === 0 ? (
                     <div className="text-center py-4 text-gray-500">
-                      No recent activity
+                      No reports pending approval
                     </div>
                   ) : (
                     <ul className="divide-y divide-gray-200">
-                      {recentActivity.map(form => (
-                        <li key={form.id} className="py-3">
-                          <div className="flex space-x-3">
-                            <div className="flex-1 space-y-1">
-                              <div className="flex items-center justify-between">
-                                <h3 className="text-sm font-medium">{getActivityDescription(form)}</h3>
-                                <p className="text-sm text-gray-500">{formatTimestamp(form.reviewedAt || form.submittedAt)}</p>
-                              </div>
-                              <div className="flex justify-between">
-                                <p className="text-sm text-gray-500">{getActivityPerson(form)}</p>
-                                <button
-                                  onClick={() => handleReviewForm(form.id)}
-                                  className="text-xs text-indigo-600 hover:text-indigo-900"
-                                >
-                                  View
-                                </button>
-                              </div>
-                            </div>
+                      {pendingForms.slice(0, 5).map(form => (
+                        <li key={form.id} className="py-3 flex justify-between items-center">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{form.documentNo}</p>
+                            <p className="text-sm text-gray-500">
+                              {form.variant} - Line {form.lineNo} - {form.product}
+                            </p>
                           </div>
+                          <button
+                            onClick={() => handleReviewForm(form.id)}
+                            className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                          >
+                            Review
+                          </button>
                         </li>
                       ))}
                     </ul>
@@ -312,10 +201,73 @@ const AVPDashboard = ({ user, onLogout }) => {
                 </div>
               </div>
             </div>
-          </>
-        )}
-      </main>
-    </div>
+            
+            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-lg font-medium text-gray-900">Quality Metrics</h3>
+                <div className="mt-4">
+                  <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <div className="bg-gray-50 overflow-hidden shadow rounded-lg p-4">
+                      <dt className="text-sm font-medium text-gray-500 truncate">Reports Approved Today</dt>
+                      <dd className="mt-1 text-3xl font-semibold text-gray-900">{metrics.approvedToday}</dd>
+                    </div>
+                    <div className="bg-gray-50 overflow-hidden shadow rounded-lg p-4">
+                      <dt className="text-sm font-medium text-gray-500 truncate">Average Approval Time</dt>
+                      <dd className="mt-1 text-3xl font-semibold text-gray-900">{metrics.avgApprovalTime}h</dd>
+                    </div>
+                    <div className="bg-gray-50 overflow-hidden shadow rounded-lg p-4">
+                      <dt className="text-sm font-medium text-gray-500 truncate">Quality Issues Reported</dt>
+                      <dd className="mt-1 text-3xl font-semibold text-gray-900">{metrics.qualityIssues}</dd>
+                    </div>
+                    <div className="bg-gray-50 overflow-hidden shadow rounded-lg p-4">
+                      <dt className="text-sm font-medium text-gray-500 truncate">Compliance Rate</dt>
+                      <dd className="mt-1 text-3xl font-semibold text-gray-900">{metrics.complianceRate}%</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-6 bg-white shadow sm:rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
+              <div className="mt-4 border-t border-gray-200 pt-4">
+                {recentActivity.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500">
+                    No recent activity
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-gray-200">
+                    {recentActivity.map(form => (
+                      <li key={form.id} className="py-3">
+                        <div className="flex space-x-3">
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-sm font-medium">{getActivityDescription(form)}</h3>
+                              <p className="text-sm text-gray-500">{formatTimestamp(form.reviewedAt || form.submittedAt)}</p>
+                            </div>
+                            <div className="flex justify-between">
+                              <p className="text-sm text-gray-500">{getActivityPerson(form)}</p>
+                              <button
+                                onClick={() => handleReviewForm(form.id)}
+                                className="text-xs text-indigo-600 hover:text-indigo-900"
+                              >
+                                View
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </DashboardLayout>
   );
 };
 

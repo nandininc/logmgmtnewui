@@ -350,8 +350,8 @@ const EditableInspectionForm = () => {
                 {/* Form Status Banner */}
                 {formData.status !== 'DRAFT' && (
                     <div className={`px-4 py-2 text-white font-semibold ${formData.status === 'SUBMITTED' ? 'bg-blue-600' :
-                            formData.status === 'APPROVED' ? 'bg-green-600' :
-                                'bg-red-600'
+                        formData.status === 'APPROVED' ? 'bg-green-600' :
+                            'bg-red-600'
                         }`}>
                         Form Status: {formData.status}
                         {formData.submittedBy && ` - Submitted by ${formData.submittedBy}`}
@@ -490,130 +490,159 @@ const EditableInspectionForm = () => {
                                 </div>
                             </div>
                         </div>
-
-                        {/* Right column - Logo */}
-                        <div className="flex items-center justify-center">
-                            <div className="text-center">
-                                <div className="font-bold text-2xl">AGI</div>
-                                <div className="text-sm font-bold">GREENPAC</div>
-                                <div className="w-16 h-1 bg-black mx-auto mt-1 rounded-full"></div>
-                            </div>
+                        <div className=" flex justify-center">
+                            <img
+                                src="https://camo.githubusercontent.com/23528efa2ac40a4438536df8a46ff30e8d90f42a342b6bf6dbb6decb55ab8e86/68747470733a2f2f656e637279707465642d74626e302e677374617469632e636f6d2f696d616765733f713d74626e3a414e64394763517336636a7049706377394a4c4d4b6b796d3366506a746d563163506b533535784e66512673"
+                                alt="AGI Logo"
+                                className="w-22 h-auto"
+                            />
                         </div>
                     </div>
                 </div>
 
-                {/* Form Info Section */}
                 <div className="border-x border-b border-gray-800">
                     <div className="grid grid-cols-3 text-sm">
                         <div className="border-r border-gray-800">
                             <div className="border-b border-gray-800 p-2">
                                 <span className="font-semibold">Date: </span>
-                                <input
-                                    type="date"
-                                    name="inspectionDate"
-                                    value={formData.inspectionDate}
-                                    onChange={handleChange}
-                                    disabled={!permissions.canEditInspectionDetails}
-                                    className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                />
+                                {formData.status === 'APPROVED' ? (
+                                    <span>{formData.inspectionDate}</span>
+                                ) : (
+                                    <input
+                                        type="date"
+                                        name="inspectionDate"
+                                        value={formData.inspectionDate}
+                                        onChange={handleChange}
+                                        disabled={!permissions.canEditInspectionDetails}
+                                        className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                    />
+                                )}
                             </div>
                             <div className="border-b border-gray-800 p-2">
                                 <span className="font-semibold">Product: </span>
-                                <input
-                                    type="text"
-                                    name="product"
-                                    value={formData.product}
-                                    onChange={handleChange}
-                                    disabled={!permissions.canEditInspectionDetails}
-                                    className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                />
+                                {formData.status === 'APPROVED' ? (
+                                    <span>{formData.product}</span>
+                                ) : (
+                                    <input
+                                        type="text"
+                                        name="product"
+                                        value={formData.product}
+                                        onChange={handleChange}
+                                        disabled={!permissions.canEditInspectionDetails}
+                                        className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                    />
+                                )}
                             </div>
                             <div className="p-2">
                                 <span className="font-semibold">Size No.: </span>
-                                <input
-                                    type="text"
-                                    name="sizeNo"
-                                    value={formData.sizeNo}
-                                    onChange={handleChange}
-                                    disabled={!permissions.canEditInspectionDetails}
-                                    className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                />
+                                {formData.status === 'APPROVED' ? (
+                                    <span>{formData.sizeNo}</span>
+                                ) : (
+                                    <input
+                                        type="text"
+                                        name="sizeNo"
+                                        value={formData.sizeNo}
+                                        onChange={handleChange}
+                                        disabled={!permissions.canEditInspectionDetails}
+                                        className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                    />
+                                )}
                             </div>
                         </div>
                         <div className="border-r border-gray-800">
                             <div className="border-b border-gray-800 p-2">
                                 <span className="font-semibold">Shift: </span>
-                                <select
-                                    name="shift"
-                                    value={formData.shift}
-                                    onChange={handleChange}
-                                    disabled={!permissions.canEditInspectionDetails}
-                                    className="px-2 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                >
-                                    {shiftOptions.map(option => (
-                                        <option key={option} value={option}>{option}</option>
-                                    ))}
-                                </select>
+                                {formData.status === 'APPROVED' ? (
+                                    <span>{formData.shift}</span>
+                                ) : (
+                                    <select
+                                        name="shift"
+                                        value={formData.shift}
+                                        onChange={handleChange}
+                                        disabled={!permissions.canEditInspectionDetails}
+                                        className="px-2 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                    >
+                                        {shiftOptions.map(option => (
+                                            <option key={option} value={option}>{option}</option>
+                                        ))}
+                                    </select>
+                                )}
                             </div>
                             <div className="border-b border-gray-800 p-2">
                                 <span className="font-semibold">Variant: </span>
-                                <select
-                                    name="variant"
-                                    value={formData.variant}
-                                    onChange={handleChange}
-                                    disabled={!permissions.canEditInspectionDetails}
-                                    className="px-2 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                >
-                                    {variantOptions.map(option => (
-                                        <option key={option} value={option}>{option}</option>
-                                    ))}
-                                </select>
+                                {formData.status === 'APPROVED' ? (
+                                    <span>{formData.variant}</span>
+                                ) : (
+                                    <select
+                                        name="variant"
+                                        value={formData.variant}
+                                        onChange={handleChange}
+                                        disabled={!permissions.canEditInspectionDetails}
+                                        className="px-2 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                    >
+                                        {variantOptions.map(option => (
+                                            <option key={option} value={option}>{option}</option>
+                                        ))}
+                                    </select>
+                                )}
                             </div>
                             <div className="p-2"></div>
                         </div>
                         <div>
                             <div className="border-b border-gray-800 p-2">
                                 <span className="font-semibold">Line No.: </span>
-                                <select
-                                    name="lineNo"
-                                    value={formData.lineNo}
-                                    onChange={handleChange}
-                                    disabled={!permissions.canEditInspectionDetails}
-                                    className="px-2 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                >
-                                    {lineOptions.map(option => (
-                                        <option key={option} value={option}>{option}</option>
-                                    ))}
-                                </select>
+                                {formData.status === 'APPROVED' ? (
+                                    <span>{formData.lineNo}</span>
+                                ) : (
+                                    <select
+                                        name="lineNo"
+                                        value={formData.lineNo}
+                                        onChange={handleChange}
+                                        disabled={!permissions.canEditInspectionDetails}
+                                        className="px-2 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                    >
+                                        {lineOptions.map(option => (
+                                            <option key={option} value={option}>{option}</option>
+                                        ))}
+                                    </select>
+                                )}
                             </div>
                             <div className="border-b border-gray-800 p-2">
                                 <span className="font-semibold">Customer: </span>
-                                <input
-                                    type="text"
-                                    name="customer"
-                                    value={formData.customer}
-                                    onChange={handleChange}
-                                    disabled={!permissions.canEditInspectionDetails}
-                                    className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                />
+                                {formData.status === 'APPROVED' ? (
+                                    <span>{formData.customer}</span>
+                                ) : (
+                                    <input
+                                        type="text"
+                                        name="customer"
+                                        value={formData.customer}
+                                        onChange={handleChange}
+                                        disabled={!permissions.canEditInspectionDetails}
+                                        className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                    />
+                                )}
                             </div>
                             <div className="p-2">
                                 <span className="font-semibold">Sample Size: </span>
-                                <input
-                                    type="text"
-                                    name="sampleSize"
-                                    value={formData.sampleSize}
-                                    onChange={handleChange}
-                                    disabled={!permissions.canEditInspectionDetails}
-                                    className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                />
+                                {formData.status === 'APPROVED' ? (
+                                    <span>{formData.sampleSize}</span>
+                                ) : (
+                                    <input
+                                        type="text"
+                                        name="sampleSize"
+                                        value={formData.sampleSize}
+                                        onChange={handleChange}
+                                        disabled={!permissions.canEditInspectionDetails}
+                                        className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                    />
+                                )}
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Lacquer Table */}
-                <div>
+                <div className="relative">
                     <table className="w-full text-sm border-collapse">
                         <thead>
                             <tr>
@@ -625,49 +654,119 @@ const EditableInspectionForm = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {formData.lacquers.map((lacquer, index) => (
-                                <tr key={lacquer.id}>
-                                    <td className="border border-gray-800 p-2 text-center">{lacquer.id}</td>
-                                    <td className="border border-gray-800 p-2">
-                                        <input
-                                            type="text"
-                                            value={lacquer.name}
-                                            onChange={(e) => handleLacquerChange(index, 'name', e.target.value)}
-                                            disabled={!permissions.canEditLacquers}
-                                            className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                        />
-                                    </td>
-                                    <td className="border border-gray-800 p-2 text-center">
-                                        <input
-                                            type="text"
-                                            value={lacquer.weight}
-                                            onChange={(e) => handleLacquerChange(index, 'weight', e.target.value)}
-                                            disabled={!permissions.canEditLacquers}
-                                            className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                        />
-                                    </td>
-                                    <td className="border border-gray-800 p-2 text-center">
-                                        <input
-                                            type="text"
-                                            value={lacquer.batchNo}
-                                            onChange={(e) => handleLacquerChange(index, 'batchNo', e.target.value)}
-                                            disabled={!permissions.canEditLacquers}
-                                            className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                        />
-                                    </td>
-                                    <td className="border border-gray-800 p-2 text-center">
-                                        <input
-                                            type="date"
-                                            value={lacquer.expiryDate}
-                                            onChange={(e) => handleLacquerChange(index, 'expiryDate', e.target.value)}
-                                            disabled={!permissions.canEditLacquers}
-                                            className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                        />
-                                    </td>
-                                </tr>
-                            ))}
+                            {formData.lacquers.map((lacquer, index) => {
+                                // Define unit based on the selected lacquer/dye
+                                let unit = "gm";
+                                if (lacquer.name === "Clear Extn") {
+                                    unit = "kg";
+                                }
+
+                                return (
+                                    <tr key={lacquer.id}>
+                                        <td className="border border-gray-800 p-2 text-center">{lacquer.id}</td>
+                                        <td className="border border-gray-800 p-2">
+                                            {formData.status === 'APPROVED' ? (
+                                                <div className="px-1 py-1">{lacquer.name}</div>
+                                            ) : (
+                                                <select
+                                                    value={lacquer.name}
+                                                    onChange={(e) => handleLacquerChange(index, 'name', e.target.value)}
+                                                    disabled={!permissions.canEditLacquers}
+                                                    className="w-full px-1 py-1 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                                >
+                                                    <option value="">Select Lacquer/Dye</option>
+                                                    <option value="Clear Extn">Clear Extn</option>
+                                                    <option value="Red Dye">Red Dye</option>
+                                                    <option value="Black Dye">Black Dye</option>
+                                                    <option value="Pink Dye">Pink Dye</option>
+                                                    <option value="Violet Dye">Violet Dye</option>
+                                                    <option value="Matt Bath">Matt Bath</option>
+                                                    <option value="Hardener">Hardener</option>
+                                                </select>
+                                            )}
+                                        </td>
+                                        <td className="border border-gray-800 p-2 text-center">
+                                            <div className="flex items-center">
+                                                {formData.status === 'APPROVED' ? (
+                                                    <div>
+                                                        {lacquer.weight} {lacquer.name && unit}
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <input
+                                                            type="text"
+                                                            value={lacquer.weight}
+                                                            onChange={(e) => handleLacquerChange(index, 'weight', e.target.value)}
+                                                            disabled={!permissions.canEditLacquers}
+                                                            className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                                        />
+                                                        {lacquer.name && (
+                                                            <span className="ml-1 text-gray-500 text-xs whitespace-nowrap">{unit}</span>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="border border-gray-800 p-2 text-center">
+                                            {formData.status === 'APPROVED' ? (
+                                                <div>{lacquer.batchNo}</div>
+                                            ) : (
+                                                <input
+                                                    type="text"
+                                                    value={lacquer.batchNo}
+                                                    onChange={(e) => handleLacquerChange(index, 'batchNo', e.target.value)}
+                                                    disabled={!permissions.canEditLacquers}
+                                                    className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                                />
+                                            )}
+                                        </td>
+                                        <td className="border border-gray-800 p-2 text-center">
+                                            {formData.status === 'APPROVED' ? (
+                                                <div>{lacquer.expiryDate}</div>
+                                            ) : (
+                                                <input
+                                                    type="date"
+                                                    value={lacquer.expiryDate}
+                                                    onChange={(e) => handleLacquerChange(index, 'expiryDate', e.target.value)}
+                                                    disabled={!permissions.canEditLacquers}
+                                                    className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                                />
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
+
+                    {/* Add Row Button - Only show if not approved */}
+                    {formData.status !== 'APPROVED' && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const newId = formData.lacquers.length > 0
+                                    ? Math.max(...formData.lacquers.map(l => l.id)) + 1
+                                    : 1;
+
+                                const updatedLacquers = [
+                                    ...formData.lacquers,
+                                    { id: newId, name: '', weight: '', batchNo: '', expiryDate: '' }
+                                ];
+
+                                setFormData({
+                                    ...formData,
+                                    lacquers: updatedLacquers
+                                });
+                            }}
+                            disabled={!permissions.canEditLacquers}
+                            className="mt-2 flex items-center bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Add Row
+                        </button>
+                    )}
                 </div>
 
                 {/* Characteristics Table */}

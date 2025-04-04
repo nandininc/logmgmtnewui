@@ -1,23 +1,177 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const Chatbot = ({ user }) => {
+const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isBotTyping, setIsBotTyping] = useState(false);
+  const [user, setUser] = useState(null);
   const messagesEndRef = useRef(null);
+  const navigate = useNavigate();
+
+  // Get user info from localStorage on mount
+  useEffect(() => {
+    try {
+      const userString = localStorage.getItem('user');
+      if (userString) {
+        const userData = JSON.parse(userString);
+        setUser(userData);
+      }
+    } catch (error) {
+      console.error('Error parsing user from localStorage:', error);
+    }
+  }, []);
 
   // Auto-open chat on component mount with a delay
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsOpen(true);
-      // Add initial greeting based on user role
-      const greeting = `Hi ${getUserRoleTitle(user)}! How can I help you today?`;
-      addBotMessage(greeting);
-    }, 1500); // 1.5 second delay
+    if (user) {
+      const timer = setTimeout(() => {
+        setIsOpen(true);
+        // Add initial greeting based on user info
+        const greeting = `Hi ${user.name || getUserRoleTitle(user)}! How can I help you today?`;
+        addBotMessage(greeting);
+        
+        // Add quick options after greeting
+        setTimeout(() => {
+          addBotMessage(
+            <div>
+              <p className="mb-2">Choose an option or type your question:</p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <QuickOption label="View Forms" onClick={() => handleQuickOption('forms')} />
+                <QuickOption label="New Inspection" onClick={() => handleQuickOption('new-inspection')} />
+                <QuickOption label="Dashboard" onClick={() => handleQuickOption('dashboard')} />
+                <QuickOption label="Help" onClick={() => handleQuickOption('help')} />
+              </div>
+            </div>
+          );
+        }, 1000);
+      }, 1500); // 1.5 second delay
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    }
   }, [user]);
+
+  const QuickOption = ({ label, onClick }) => (
+    <button 
+      onClick={onClick}
+      className="bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium rounded-full px-3 py-1 text-sm flex items-center transition-colors"
+    >
+      <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+      {label}
+    </button>
+  );
+
+  const handleQuickOption = (option) => {
+    // Add user "message" showing they selected this option
+    setMessages(prev => [...prev, { 
+      sender: 'user', 
+      content: option === 'forms' ? 'View Forms' : 
+               option === 'new-inspection' ? 'New Inspection' : 
+               option === 'dashboard' ? 'Dashboard' : 'Help'
+    }]);
+
+    // Handle different options
+    switch (option) {
+      case 'forms':
+        addBotMessage(
+          <div>
+            <p>Here are links to your forms:</p>
+            <ul className="mt-2 ml-4 list-disc">
+              <li className="mb-1">
+                <a href="/forms" className="text-blue-500 underline hover:text-blue-700" onClick={(e) => { e.preventDefault(); navigate('/forms'); }}>
+                  All Forms
+                </a>
+              </li>
+              <li className="mb-1">
+                <a href="/forms/drafted" className="text-blue-500 underline hover:text-blue-700" onClick={(e) => { e.preventDefault(); navigate('/forms/drafted'); }}>
+                  Draft Forms
+                </a>
+              </li>
+              <li>
+                <a href="/forms/approved" className="text-blue-500 underline hover:text-blue-700" onClick={(e) => { e.preventDefault(); navigate('/forms/approved'); }}>
+                  Approved Forms
+                </a>
+              </li>
+            </ul>
+          </div>
+        );
+        break;
+      case 'new-inspection':
+        addBotMessage(
+          <div>
+            <p>You can create a new inspection form by clicking the link below:</p>
+            <div className="mt-2">
+              <a 
+                href="/inspection-form/new" 
+                className="inline-block bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+                onClick={(e) => { e.preventDefault(); navigate('/inspection-form/new'); }}
+              >
+                Create New Form
+              </a>
+            </div>
+          </div>
+        );
+        break;
+      case 'dashboard':
+        addBotMessage(
+          <div>
+            <p>You can access your dashboard here:</p>
+            <div className="mt-2">
+              <a 
+                href="/dashboard" 
+                className="inline-block bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
+                onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}
+              >
+                Go to Dashboard
+              </a>
+            </div>
+          </div>
+        );
+        break;
+      case 'help':
+        addBotMessage(
+          <div>
+            <p>How can I help you today? Here are some common topics:</p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <QuickOption label="Form Status" onClick={() => handleHelpOption('status')} />
+              <QuickOption label="Editing Forms" onClick={() => handleHelpOption('editing')} />
+              <QuickOption label="Approvals" onClick={() => handleHelpOption('approvals')} />
+              <QuickOption label="Contact Support" onClick={() => handleHelpOption('contact')} />
+            </div>
+          </div>
+        );
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleHelpOption = (topic) => {
+    setMessages(prev => [...prev, { 
+      sender: 'user', 
+      content: topic === 'status' ? 'Form Status' : 
+               topic === 'editing' ? 'Editing Forms' : 
+               topic === 'approvals' ? 'Approvals' : 'Contact Support'
+    }]);
+
+    switch (topic) {
+      case 'status':
+        addBotMessage("You can check the status of your forms on the Forms page. Forms can be in Draft, Submitted, Approved, or Rejected status.");
+        break;
+      case 'editing':
+        addBotMessage("You can edit forms that are in Draft status. Once submitted, forms can only be edited by users with appropriate permissions.");
+        break;
+      case 'approvals':
+        addBotMessage("Forms need to be approved by an AVP user. After submission, they will review the form and either approve or reject it with comments.");
+        break;
+      case 'contact':
+        addBotMessage("For technical support, please email support@agigreenpac.com or call our helpdesk at 1-800-555-1234.");
+        break;
+      default:
+        break;
+    }
+  };
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -74,38 +228,93 @@ const Chatbot = ({ user }) => {
   const generateResponse = (message) => {
     const normalizedMessage = message.toLowerCase();
     
-    // Simple response logic
+    // Check for navigation requests
+    if (normalizedMessage.includes('forms') || normalizedMessage.includes('inspection')) {
+      return (
+        <div>
+          <p>You can access forms here:</p>
+          <div className="mt-2">
+            <a 
+              href="/forms" 
+              className="inline-block bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors mr-2"
+              onClick={(e) => { e.preventDefault(); navigate('/forms'); }}
+            >
+              All Forms
+            </a>
+            <a 
+              href="/inspection-form/new" 
+              className="inline-block bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+              onClick={(e) => { e.preventDefault(); navigate('/inspection-form/new'); }}
+            >
+              New Form
+            </a>
+          </div>
+        </div>
+      );
+    } else if (normalizedMessage.includes('dashboard')) {
+      return (
+        <div>
+          <p>You can access your dashboard here:</p>
+          <div className="mt-2">
+            <a 
+              href="/dashboard" 
+              className="inline-block bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
+              onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}
+            >
+              Go to Dashboard
+            </a>
+          </div>
+        </div>
+      );
+    }
+    
+    // Simple text responses
     if (normalizedMessage.includes('hello') || normalizedMessage.includes('hi')) {
       return 'Hello! How can I assist you today?';
     } else if (normalizedMessage.includes('help')) {
-      return 'I can help with information about the inspection forms, navigation, or general assistance. What do you need help with?';
-    } else if (normalizedMessage.includes('form') || normalizedMessage.includes('inspection')) {
-      return 'You can create a new inspection form by going to the forms page and clicking on "New Form". Let me know if you need more specific guidance.';
+      return (
+        <div>
+          <p>I can help with various topics. What do you need assistance with?</p>
+          <div className="flex flex-wrap gap-2 mt-2">
+            <QuickOption label="Form Status" onClick={() => handleHelpOption('status')} />
+            <QuickOption label="Editing Forms" onClick={() => handleHelpOption('editing')} />
+            <QuickOption label="Approvals" onClick={() => handleHelpOption('approvals')} />
+            <QuickOption label="Contact Support" onClick={() => handleHelpOption('contact')} />
+          </div>
+        </div>
+      );
     } else if (normalizedMessage.includes('logout') || normalizedMessage.includes('log out')) {
       return 'To log out, click the "Logout" button at the top right corner of the page.';
     } else if (normalizedMessage.includes('thank')) {
       return "You're welcome! If you need anything else, I'm here to help.";
-    } else if (normalizedMessage.includes('dashboard')) {
-      return 'To access the dashboard, click on the "Dashboard" link in the main navigation menu.';
     } else if (normalizedMessage.includes('settings')) {
       return 'You can adjust your settings by clicking on the "Settings" icon located in the top right corner.';
     } else if (normalizedMessage.includes('profile')) {
       return 'To view or edit your profile, click on your name in the top right corner and select "Profile".';
     } else if (normalizedMessage.includes('error') || normalizedMessage.includes('issue')) {
-      return 'I’m sorry to hear you’re experiencing an issue. Can you describe the problem in more detail so I can assist you better?';
+      return  "I'm sorry to hear you're experiencing an issue. Can you describe the problem in more detail so I can assist you better?";
     } else if (normalizedMessage.includes('contact')) {
-      return 'You can contact support by clicking the "Contact Us" link in the footer, or by sending an email to support@example.com.';
+      return 'You can contact support by sending an email to support@agigreenpac.com or by calling our helpdesk at 1-800-555-1234.';
     } else if (normalizedMessage.includes('notification') || normalizedMessage.includes('alert')) {
       return 'To view your notifications, click on the bell icon in the top right corner of the page.';
-    } else if (normalizedMessage.includes('language')) {
-      return 'To change your language preferences, go to the "Settings" section and select "Language".';
     } else if (normalizedMessage.includes('save')) {
-      return 'Don’t forget to save your work regularly by clicking the "Save" button at the bottom of the page!';
+      return "Don't forget to save your work regularly by clicking the \"Save Changes\" button at the bottom of the form!";
     } else {
-      return "I'm not sure I understand. Could you please provide more details or try asking in a different way?";
+      return (
+        <div>
+          <p>I'm not sure I understand. Could you please try asking in a different way?</p>
+          <div className="mt-2">
+            <p>Or select one of these options:</p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <QuickOption label="View Forms" onClick={() => handleQuickOption('forms')} />
+              <QuickOption label="New Inspection" onClick={() => handleQuickOption('new-inspection')} />
+              <QuickOption label="Help" onClick={() => handleQuickOption('help')} />
+            </div>
+          </div>
+        </div>
+      );
     }
-};
-
+  };
 
   const toggleChat = () => {
     setIsOpen(prev => !prev);

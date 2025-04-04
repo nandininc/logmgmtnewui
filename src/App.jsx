@@ -160,6 +160,13 @@ const AuthRouter = () => {
           </InspectionFormLayout>
         ) : <Navigate to="/" replace />
       } />
+        <Route path="/ViewInspectionForm-form/:id" element={
+        isAuthenticated ? (
+          <InspectionFormLayout user={user} onLogout={logout}>
+            <EditableInspectionForm />
+          </InspectionFormLayout>
+        ) : <Navigate to="/" replace />
+      } />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

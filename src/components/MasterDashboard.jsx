@@ -1,4 +1,3 @@
-// MasterDashboard.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { inspectionFormAPI } from './api';
@@ -14,7 +13,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { Line, Bar, Pie } from 'react-chartjs-2';
+import { Line, Pie } from 'react-chartjs-2';
 
 ChartJS.register(
   CategoryScale,
@@ -148,104 +147,124 @@ const MasterDashboard = ({ user, onLogout }) => {
   });
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
-        <h1 className="text-2xl font-bold">{activeTab === 'dashboard' ? 'Dashboard' : 'All Forms'}</h1>
-        <button onClick={onLogout} className="bg-red-600 text-white px-4 py-2 rounded">Logout</button>
-      </div>
-
-      <div className="mb-6 space-x-4">
-        <button onClick={() => setActiveTab('dashboard')} className={`px-4 py-2 rounded ${activeTab === 'dashboard' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>Dashboard</button>
-        <button onClick={() => setActiveTab('forms')} className={`px-4 py-2 rounded ${activeTab === 'forms' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>All Forms</button>
-      </div>
-
-      {loading ? (
-        <p>Loading...</p>
-      ) : activeTab === 'dashboard' ? (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.entries(metrics).map(([key, val]) => (
-              <div key={key} className="bg-white p-4 shadow rounded">
-                <p className="text-sm text-gray-500 capitalize">{key.replace(/([A-Z])/g, ' $1')}</p>
-                <p className="text-xl font-bold">{val}</p>
-              </div>
-            ))}
-          </div>
-
-          {chartData && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white p-4 shadow rounded">
-                <h3 className="font-semibold mb-4">Form Status</h3>
-                <Pie data={{
-                  labels: Object.keys(chartData.statusCounts),
-                  datasets: [{
-                    data: Object.values(chartData.statusCounts),
-                    backgroundColor: ['#60A5FA', '#34D399', '#F87171', '#D1D5DB']
-                  }]
-                }} />
-              </div>
-
-              <div className="bg-white p-4 shadow rounded">
-                <h3 className="font-semibold mb-4">Monthly Trends</h3>
-                <Line data={{
-                  labels: chartData.last6Months,
-                  datasets: [
-                    { label: 'Submissions', data: chartData.monthlySubmissions, borderColor: '#60A5FA', fill: false },
-                    { label: 'Approvals', data: chartData.monthlyApprovals, borderColor: '#34D399', fill: false }
-                  ]
-                }} />
-              </div>
-            </div>
-          )}
+    <div>
+      {/* Fixed Navigation Bar */}
+      <nav className="fixed top-0 left-0 w-full bg-white shadow z-50 p-4 flex justify-between items-center">
+        <h1 className="text-2xl font-bold">
+          {activeTab === 'dashboard' ? 'Dashboard' : 'All Forms'}
+        </h1>
+        <div className="space-x-2">
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`px-4 py-2 rounded ${activeTab === 'dashboard' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+          >
+            Dashboard
+          </button>
+          <button
+            onClick={() => setActiveTab('forms')}
+            className={`px-4 py-2 rounded ${activeTab === 'forms' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+          >
+            All Forms
+          </button>
+          <button
+            onClick={onLogout}
+            className="bg-red-600 text-white px-4 py-2 rounded"
+          >
+            Logout
+          </button>
         </div>
-      ) : (
-        <div className="bg-white p-4 rounded shadow">
-          <div className="mb-4 flex items-center">
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="border px-3 py-2 mr-4 rounded w-1/2"
-            />
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="border px-3 py-2 rounded"
-            >
-              <option value="all">All</option>
-              <option value="DRAFT">Draft</option>
-              <option value="SUBMITTED">Submitted</option>
-              <option value="APPROVED">Approved</option>
-              <option value="REJECTED">Rejected</option>
-            </select>
-          </div>
-          <table className="w-full table-auto text-sm">
-            <thead>
-              <tr className="bg-gray-100 text-left">
-                <th className="p-2">Document No</th>
-                <th className="p-2">Product</th>
-                <th className="p-2">Variant</th>
-                <th className="p-2">Status</th>
-                <th className="p-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredForms.map((f) => (
-                <tr key={f.id} className="border-t">
-                  <td className="p-2">{f.documentNo}</td>
-                  <td className="p-2">{f.product}</td>
-                  <td className="p-2">{f.variant}</td>
-                  <td className={`p-2 font-medium ${getStatusClass(f.status)}`}>{f.status}</td>
-                  <td className="p-2">
-                    <button onClick={() => handleViewForm(f.id)} className="text-blue-600 hover:underline">View</button>
-                  </td>
-                </tr>
+      </nav>
+
+      {/* Content with padding to avoid being under nav */}
+      <div className="pt-24 px-6 pb-6">
+        {loading ? (
+          <p>Loading...</p>
+        ) : activeTab === 'dashboard' ? (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Object.entries(metrics).map(([key, val]) => (
+                <div key={key} className="bg-white p-4 shadow rounded">
+                  <p className="text-sm text-gray-500 capitalize">{key.replace(/([A-Z])/g, ' $1')}</p>
+                  <p className="text-xl font-bold">{val}</p>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+            </div>
+
+            {chartData && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white p-4 shadow rounded">
+                  <h3 className="font-semibold mb-4">Form Status</h3>
+                  <Pie data={{
+                    labels: Object.keys(chartData.statusCounts),
+                    datasets: [{
+                      data: Object.values(chartData.statusCounts),
+                      backgroundColor: ['#60A5FA', '#34D399', '#F87171', '#D1D5DB']
+                    }]
+                  }} />
+                </div>
+
+                <div className="bg-white p-4 shadow rounded">
+                  <h3 className="font-semibold mb-4">Monthly Trends</h3>
+                  <Line data={{
+                    labels: chartData.last6Months,
+                    datasets: [
+                      { label: 'Submissions', data: chartData.monthlySubmissions, borderColor: '#60A5FA', fill: false },
+                      { label: 'Approvals', data: chartData.monthlyApprovals, borderColor: '#34D399', fill: false }
+                    ]
+                  }} />
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="bg-white p-4 rounded shadow">
+            <div className="mb-4 flex items-center">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="border px-3 py-2 mr-4 rounded w-1/2"
+              />
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="border px-3 py-2 rounded"
+              >
+                <option value="all">All</option>
+                <option value="DRAFT">Draft</option>
+                <option value="SUBMITTED">Submitted</option>
+                <option value="APPROVED">Approved</option>
+                <option value="REJECTED">Rejected</option>
+              </select>
+            </div>
+            <table className="w-full table-auto text-sm">
+              <thead>
+                <tr className="bg-gray-100 text-left">
+                  <th className="p-2">Document No</th>
+                  <th className="p-2">Product</th>
+                  <th className="p-2">Variant</th>
+                  <th className="p-2">Status</th>
+                  <th className="p-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredForms.map((f) => (
+                  <tr key={f.id} className="border-t">
+                    <td className="p-2">{f.documentNo}</td>
+                    <td className="p-2">{f.product}</td>
+                    <td className="p-2">{f.variant}</td>
+                    <td className={`p-2 font-medium ${getStatusClass(f.status)}`}>{f.status}</td>
+                    <td className="p-2">
+                      <button onClick={() => handleViewForm(f.id)} className="text-blue-600 hover:underline">View</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -129,6 +129,7 @@ const OperatorDashboard = ({ user, onLogout }) => {
   const handleCreateNewForm = () => {
     navigate('/inspection-form');
   };
+  
 
   // Navigate to view a specific form
   const handleViewForm = (formId) => {

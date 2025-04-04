@@ -91,7 +91,7 @@ const EditableInspectionForm = () => {
                     setLoading(false);
                 }
             };
-            
+
             fetchForm();
         }
     }, [id]);
@@ -103,33 +103,33 @@ const EditableInspectionForm = () => {
             const isQA = user.role === 'qa';
             const isAVP = user.role === 'avp';
             const isMaster = user.role === 'master';
-            
+
             const isDraft = formData.status === 'DRAFT';
             const isSubmitted = formData.status === 'SUBMITTED';
             const isApproved = formData.status === 'APPROVED';
             const isRejected = formData.status === 'REJECTED';
-            
+
             const isCreator = formData.submittedBy === user.name;
-            
+
             setPermissions({
                 // Admin can edit anything
                 canEditDocumentInfo: isMaster || (isOperator && isDraft),
-                
+
                 // Operators can edit details in draft state
                 canEditInspectionDetails: (isOperator && isDraft) || isMaster,
-                
+
                 // Operators can edit lacquers in draft state
                 canEditLacquers: (isOperator && isDraft) || isMaster,
-                
+
                 // QA can edit characteristics when submitted
                 canEditCharacteristics: (isQA && isSubmitted) || isMaster || (isOperator && isDraft),
-                
+
                 // Operators can submit drafts
                 canSubmit: (isOperator && isDraft) || isMaster,
-                
+
                 // AVP can approve submitted forms
                 canApprove: (isAVP && isSubmitted) || isMaster,
-                
+
                 // AVP can reject submitted forms
                 canReject: (isAVP && isSubmitted) || isMaster
             });
@@ -171,7 +171,7 @@ const EditableInspectionForm = () => {
                 ...updatedCharacteristics[batchCompositionIndex],
                 observation: composition
             };
-            
+
             setFormData({
                 ...formData,
                 lacquers: updatedLacquers,
@@ -211,7 +211,7 @@ const EditableInspectionForm = () => {
     const saveForm = async () => {
         try {
             setSaving(true);
-            
+
             // Add operator info if missing
             let updatedFormData = { ...formData };
             if (user.role === 'operator' && !updatedFormData.productionOperator) {
@@ -221,7 +221,7 @@ const EditableInspectionForm = () => {
                     operatorSignature: `signed_by_${user.name.toLowerCase().replace(/\s/g, '_')}`
                 };
             }
-            
+
             let result;
             if (id) {
                 // Update existing form
@@ -230,14 +230,14 @@ const EditableInspectionForm = () => {
                 // Create new form
                 result = await inspectionFormAPI.createForm(updatedFormData);
             }
-            
+
             alert(`Form ${id ? 'updated' : 'created'} successfully!`);
-            
+
             // Navigate back to form list or to the newly created form
             if (!id) {
                 navigate(`/inspection-form/${result.id}`);
             }
-            
+
             return result;
         } catch (error) {
             console.error('Error saving form:', error);
@@ -253,10 +253,10 @@ const EditableInspectionForm = () => {
         try {
             const saved = await saveForm();
             const result = await inspectionFormAPI.submitForm(saved.id || id, user.name);
-            
+
             alert('Form submitted for approval!');
             navigate('/forms');
-            
+
             return result;
         } catch (error) {
             console.error('Error submitting form:', error);
@@ -267,10 +267,10 @@ const EditableInspectionForm = () => {
     // Approve the form
     const approveForm = async () => {
         if (!id) return;
-        
+
         try {
             setSaving(true);
-            
+
             // Add QA info if missing
             if (user.role === 'avp' && !formData.qaExecutive) {
                 setFormData({
@@ -279,13 +279,13 @@ const EditableInspectionForm = () => {
                     qaSignature: `signed_by_${user.name.toLowerCase().replace(/\s/g, '_')}`
                 });
             }
-            
+
             const comments = window.prompt('Add any approval comments (optional):');
             const result = await inspectionFormAPI.approveForm(id, user.name, comments || '');
-            
+
             alert('Form approved successfully!');
             navigate('/forms');
-            
+
             return result;
         } catch (error) {
             console.error('Error approving form:', error);
@@ -298,21 +298,21 @@ const EditableInspectionForm = () => {
     // Reject the form
     const rejectForm = async () => {
         if (!id) return;
-        
+
         try {
             setSaving(true);
-            
+
             const comments = window.prompt('Please provide rejection reason:');
             if (!comments) {
                 alert('Rejection reason is required.');
                 return;
             }
-            
+
             const result = await inspectionFormAPI.rejectForm(id, user.name, comments);
-            
+
             alert('Form rejected successfully!');
             navigate('/forms');
-            
+
             return result;
         } catch (error) {
             console.error('Error rejecting form:', error);
@@ -320,216 +320,6 @@ const EditableInspectionForm = () => {
         } finally {
             setSaving(false);
         }
-    };
-
-    // Print handler function
-    const handlePrint = () => {
-        // Create a new window for printing
-        const printWindow = window.open('', '_blank');
-        
-        // Get the current date and time for the print header
-        const printDate = new Date().toLocaleString();
-        
-        // Create printable content - only include the tables
-        const printContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Inspection Form ${formData.documentNo}</title>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        font-size: 11px;
-                        margin: 0;
-                        padding: 20px;
-                    }
-                    .print-header {
-                        display: flex;
-                        justify-content: space-between;
-                        margin-bottom: 20px;
-                        border-bottom: 1px solid #000;
-                        padding-bottom: 10px;
-                    }
-                    .company-info {
-                        text-align: center;
-                        margin-bottom: 10px;
-                    }
-                    .company-info h1 {
-                        font-size: 16px;
-                        margin: 0;
-                    }
-                    .company-info p {
-                        font-size: 12px;
-                        margin: 5px 0;
-                    }
-                    .print-timestamp {
-                        font-size: 10px;
-                        text-align: right;
-                        margin-top: 5px;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin-bottom: 20px;
-                    }
-                    th, td {
-                        border: 1px solid #000;
-                        padding: 5px;
-                        text-align: left;
-                    }
-                    th {
-                        background-color: #f0f0f0;
-                        font-weight: bold;
-                    }
-                    .form-info {
-                        display: grid;
-                        grid-template-columns: repeat(3, 1fr);
-                        border: 1px solid #000;
-                        margin-bottom: 20px;
-                    }
-                    .form-info div {
-                        padding: 5px;
-                        border-right: 1px solid #000;
-                        border-bottom: 1px solid #000;
-                    }
-                    .form-info span.label {
-                        font-weight: bold;
-                    }
-                    .form-info div:nth-child(3n) {
-                        border-right: none;
-                    }
-                    .form-info div:nth-last-child(-n+3) {
-                        border-bottom: none;
-                    }
-                    .signatures {
-                        display: flex;
-                        justify-content: space-between;
-                        margin-top: 30px;
-                    }
-                    .signature-field {
-                        border-top: 1px solid #000;
-                        width: 150px;
-                        padding-top: 5px;
-                        text-align: center;
-                    }
-                    /* Print-specific styles */
-                    @media print {
-                        body {
-                            padding: 0;
-                            margin: 0;
-                        }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="print-header">
-                    <div>
-                        <strong>Document No:</strong> ${formData.documentNo}
-                        <br />
-                        <strong>Issuance No:</strong> ${formData.issuanceNo}
-                    </div>
-                    <div class="company-info">
-                        <h1>AGI Greenpac Limited</h1>
-                        <p>Unit :- AGI Speciality Glas Division</p>
-                        <p><strong>TITLE:</strong> FIRST ARTICLE INSPECTION REPORT - COATING</p>
-                    </div>
-                    <div>
-                        <strong>Approval Date:</strong> ${formData.reviewedBy ? formData.reviewedAt : ''}
-                        <br />
-                        <strong>Status:</strong> ${formData.status}
-                    </div>
-                </div>
-                
-                <div class="form-info">
-                    <div><span class="label">Date:</span> ${formData.inspectionDate}</div>
-                    <div><span class="label">Shift:</span> ${formData.shift}</div>
-                    <div><span class="label">Line No:</span> ${formData.lineNo}</div>
-                    <div><span class="label">Product:</span> ${formData.product}</div>
-                    <div><span class="label">Variant:</span> ${formData.variant}</div>
-                    <div><span class="label">Customer:</span> ${formData.customer}</div>
-                    <div><span class="label">Size No:</span> ${formData.sizeNo}</div>
-                    <div></div>
-                    <div><span class="label">Sample Size:</span> ${formData.sampleSize}</div>
-                </div>
-
-                <h3>Lacquer / Dye Details</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>S.No.</th>
-                            <th>Lacquer / Dye</th>
-                            <th>wt.</th>
-                            <th>Batch No.</th>
-                            <th>Expiry Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${formData.lacquers.map(lacquer => `
-                            <tr>
-                                <td>${lacquer.id}</td>
-                                <td>${lacquer.name}</td>
-                                <td>${lacquer.weight}</td>
-                                <td>${lacquer.batchNo}</td>
-                                <td>${lacquer.expiryDate}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-
-                <h3>Characteristics</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>S.No.</th>
-                            <th>Characteristic</th>
-                            <th>Observations</th>
-                            <th>Comments</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${formData.characteristics.map(char => `
-                            <tr>
-                                <td>${char.id}</td>
-                                <td>${char.name}</td>
-                                <td>${char.id === 6 ? 
-                                    `Body: ${char.bodyThickness || ''}<br>Bottom: ${char.bottomThickness || ''}` : 
-                                    char.observation}</td>
-                                <td>${char.comments}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-
-                <div class="signatures">
-                    <div class="signature-field">
-                        QA Executive: ${formData.qaExecutive || ''}
-                    </div>
-                    <div class="signature-field">
-                        Production Operator: ${formData.productionOperator || ''}
-                    </div>
-                </div>
-
-                <div class="print-timestamp">
-                    Printed on: ${printDate}
-                    ${formData.reviewedBy ? `<br>Reviewed by: ${formData.reviewedBy}` : ''}
-                </div>
-            </body>
-            </html>
-        `;
-
-        // Write to the new window and print
-        printWindow.document.open();
-        printWindow.document.write(printContent);
-        printWindow.document.close();
-        
-        // Wait for content to load before printing
-        printWindow.onload = function() {
-            printWindow.print();
-            // Optional: close the window after printing
-            // printWindow.onafterprint = function() {
-            //   printWindow.close();
-            // };
-        };
     };
 
     // Handle form submission
@@ -559,16 +349,15 @@ const EditableInspectionForm = () => {
             <form onSubmit={handleSubmit} className="w-full max-w-4xl bg-white shadow-md pt-2">
                 {/* Form Status Banner */}
                 {formData.status !== 'DRAFT' && (
-                    <div className={`px-4 py-2 text-white font-semibold ${
-                        formData.status === 'SUBMITTED' ? 'bg-blue-600' : 
-                        formData.status === 'APPROVED' ? 'bg-green-600' : 
-                        'bg-red-600'
-                    }`}>
+                    <div className={`px-4 py-2 text-white font-semibold ${formData.status === 'SUBMITTED' ? 'bg-blue-600' :
+                            formData.status === 'APPROVED' ? 'bg-green-600' :
+                                'bg-red-600'
+                        }`}>
                         Form Status: {formData.status}
                         {formData.submittedBy && ` - Submitted by ${formData.submittedBy}`}
                     </div>
                 )}
-                
+
                 {/* Header */}
                 <div className="border border-gray-800">
                     <div className="grid grid-cols-3">
@@ -873,241 +662,247 @@ const EditableInspectionForm = () => {
                                             onChange={(e) => handleLacquerChange(index, 'expiryDate', e.target.value)}
                                             disabled={!permissions.canEditLacquers}
                                             className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                            />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-    
-                    {/* Characteristics Table */}
-                    <div className="mt-px">
-                        <table className="w-full text-sm border-collapse">
-                            <thead>
-                                <tr>
-                                    <th className="border border-gray-800 p-2 w-12 bg-gray-200">S.No.</th>
-                                    <th className="border border-gray-800 p-2 bg-gray-200">Characteristic</th>
-                                    <th className="border border-gray-800 p-2 bg-gray-200">
-                                        <div>As per Reference sample no. X-211</div>
-                                        <div>Observations</div>
-                                    </th>
-                                    <th className="border border-gray-800 p-2 bg-gray-200">Comments</th>
+                                        />
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {formData.characteristics.map((char, index) => (
-                                    <tr key={char.id}>
-                                        <td className="border border-gray-800 p-2 text-center">{char.id}</td>
-                                        <td className="border border-gray-800 p-2">
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Characteristics Table */}
+                <div className="mt-px">
+                    <table className="w-full text-sm border-collapse">
+                        <thead>
+                            <tr>
+                                <th className="border border-gray-800 p-2 w-12 bg-gray-200">S.No.</th>
+                                <th className="border border-gray-800 p-2 bg-gray-200">Characteristic</th>
+                                <th className="border border-gray-800 p-2 bg-gray-200">
+                                    <div>As per Reference sample no. X-211</div>
+                                    <div>Observations</div>
+                                </th>
+                                <th className="border border-gray-800 p-2 bg-gray-200">Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {formData.characteristics.map((char, index) => (
+                                <tr key={char.id}>
+                                    <td className="border border-gray-800 p-2 text-center">{char.id}</td>
+                                    <td className="border border-gray-800 p-2">
+                                        <input
+                                            type="text"
+                                            value={char.name}
+                                            onChange={(e) => handleCharChange(index, 'name', e.target.value)}
+                                            disabled={!permissions.canEditCharacteristics}
+                                            className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                        />
+                                    </td>
+                                    <td className="border border-gray-800">
+                                        {char.id === 6 ? (
+                                            <table className="w-full border-collapse">
+                                                <tbody>
+                                                    <tr>
+                                                        <td className="border-b border-r border-gray-800 p-2 w-20 text-center font-semibold">Body</td>
+                                                        <td className="border-b border-gray-800 p-2 text-center">
+                                                            <input
+                                                                type="text"
+                                                                value={char.bodyThickness}
+                                                                onChange={(e) => handleCharChange(index, 'bodyThickness', e.target.value)}
+                                                                disabled={!permissions.canEditCharacteristics}
+                                                                className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                                            />
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border-r border-gray-800 text-center font-semibold">Bottom</td>
+                                                        <td className="p-2 text-center">
+                                                            <input
+                                                                type="text"
+                                                                value={char.bottomThickness}
+                                                                onChange={(e) => handleCharChange(index, 'bottomThickness', e.target.value)}
+                                                                disabled={!permissions.canEditCharacteristics}
+                                                                className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                                            />
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        ) : (
                                             <input
                                                 type="text"
-                                                value={char.name}
-                                                onChange={(e) => handleCharChange(index, 'name', e.target.value)}
+                                                value={char.observation}
+                                                onChange={(e) => handleCharChange(index, 'observation', e.target.value)}
                                                 disabled={!permissions.canEditCharacteristics}
                                                 className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
                                             />
-                                        </td>
-                                        <td className="border border-gray-800">
-                                            {char.id === 6 ? (
-                                                <table className="w-full border-collapse">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td className="border-b border-r border-gray-800 p-2 w-20 text-center font-semibold">Body</td>
-                                                            <td className="border-b border-gray-800 p-2 text-center">
-                                                                <input
-                                                                    type="text"
-                                                                    value={char.bodyThickness}
-                                                                    onChange={(e) => handleCharChange(index, 'bodyThickness', e.target.value)}
-                                                                    disabled={!permissions.canEditCharacteristics}
-                                                                    className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                                                />
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className="border-r border-gray-800 text-center font-semibold">Bottom</td>
-                                                            <td className="p-2 text-center">
-                                                                <input
-                                                                    type="text"
-                                                                    value={char.bottomThickness}
-                                                                    onChange={(e) => handleCharChange(index, 'bottomThickness', e.target.value)}
-                                                                    disabled={!permissions.canEditCharacteristics}
-                                                                    className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                                                />
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            ) : (
-                                                <input
-                                                    type="text"
-                                                    value={char.observation}
-                                                    onChange={(e) => handleCharChange(index, 'observation', e.target.value)}
-                                                    disabled={!permissions.canEditCharacteristics}
-                                                    className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                                />
-                                            )}
-                                        </td>
-                                        <td className="border border-gray-800 p-2">
-                                            <input
-                                                type="text"
-                                                value={char.comments}
-                                                onChange={(e) => handleCharChange(index, 'comments', e.target.value)}
-                                                disabled={!permissions.canEditCharacteristics}
-                                                className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                            />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-    
-                    {/* Footer */}
-                    <div className="border-x border-b border-gray-800">
-                        <div className="flex justify-between items-center p-4">
-                            <div className="flex items-center">
-                                <div className="font-semibold mr-2">QA Exe.</div>
-                                <div className="w-16">
-                                    {formData.qaSignature ? (
-                                        <img src={QASign} alt="QA Signature" />
-                                    ) : (
-                                        <div className="h-12 border border-dashed border-gray-400 flex items-center justify-center">
-                                            <span className="text-xs text-gray-500">No signature</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            <div></div>
-                            <div className="flex items-center">
-                                <div className="font-semibold mr-2">Production Sup. / Operator:</div>
-                                <div className="w-16">
-                                    {formData.operatorSignature ? (
-                                        <img src={OperatorSign} alt="Operator Signature" />
-                                    ) : (
-                                        <div className="h-12 border border-dashed border-gray-400 flex items-center justify-center">
-                                            <span className="text-xs text-gray-500">No signature</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="mt-2 border-t border-gray-800 p-4">
-                            <span className="font-semibold">Time (Final Approval) : </span>
-                            <input
-                                type="text"
-                                name="finalApprovalTime"
-                                value={formData.finalApprovalTime}
-                                onChange={handleChange}
-                                disabled={!(permissions.canApprove || permissions.canEditDocumentInfo)}
-                                className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                            />
-                        </div>
-                    </div>
-    
-                    {/* Review Information */}
-                    {(formData.status === 'SUBMITTED' || formData.status === 'APPROVED' || formData.status === 'REJECTED') && (
-                        <div className="border-x border-b border-gray-800 p-4 bg-gray-50">
-                            <h3 className="font-semibold text-gray-700 mb-2">Review Information</h3>
-                            
-                            {formData.submittedBy && (
-                                <div className="text-sm mb-1">
-                                    <span className="font-medium">Submitted by:</span> {formData.submittedBy}
-                                    {formData.submittedAt && (
-                                        <span className="ml-1 text-gray-500">
-                                            on {new Date(formData.submittedAt).toLocaleString()}
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-                            
-                            {formData.reviewedBy && (
-                                <div className="text-sm mb-1">
-                                    <span className="font-medium">Reviewed by:</span> {formData.reviewedBy}
-                                    {formData.reviewedAt && (
-                                        <span className="ml-1 text-gray-500">
-                                            on {new Date(formData.reviewedAt).toLocaleString()}
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-                            
-                            {formData.comments && (
-                                <div className="mt-2">
-                                    <span className="font-medium text-sm">Comments:</span>
-                                    <div className="p-2 bg-white border border-gray-300 rounded mt-1 text-sm">
-                                        {formData.comments}
+                                        )}
+                                    </td>
+                                    <td className="border border-gray-800 p-2">
+                                        <input
+                                            type="text"
+                                            value={char.comments}
+                                            onChange={(e) => handleCharChange(index, 'comments', e.target.value)}
+                                            disabled={!permissions.canEditCharacteristics}
+                                            className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                        />
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Footer */}
+                <div className="border-x border-b border-gray-800">
+                    <div className="flex justify-between items-center p-4">
+                        <div className="flex items-center">
+                            <div className="font-semibold mr-2">QA Exe.</div>
+                            <div className="w-16">
+                                {formData.qaSignature ? (
+                                    <img src={QASign} alt="QA Signature" />
+                                ) : (
+                                    <div className="h-12 border border-dashed border-gray-400 flex items-center justify-center">
+                                        <span className="text-xs text-gray-500">No signature</span>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
-                    )}
-    
-                    {/* Action Buttons */}
-                    <div className="p-4 bg-gray-100 flex justify-between">
-                        <div className="flex space-x-2">
+                        <div></div>
+                        <div className="flex items-center">
+                            <div className="font-semibold mr-2">Production Sup. / Operator:</div>
+                            <div className="w-16">
+                                {formData.operatorSignature ? (
+                                    <img src={OperatorSign} alt="Operator Signature" />
+                                ) : (
+                                    <div className="h-12 border border-dashed border-gray-400 flex items-center justify-center">
+                                        <span className="text-xs text-gray-500">No signature</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-2 border-t border-gray-800 p-4">
+                        <span className="font-semibold">Time (Final Approval) : </span>
+                        <input
+                            type="text"
+                            name="finalApprovalTime"
+                            value={formData.finalApprovalTime}
+                            onChange={handleChange}
+                            disabled={!(permissions.canApprove || permissions.canEditDocumentInfo)}
+                            className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                        />
+                    </div>
+                </div>
+
+                {/* Review Information */}
+                {(formData.status === 'SUBMITTED' || formData.status === 'APPROVED' || formData.status === 'REJECTED') && (
+                    <div className="border-x border-b border-gray-800 p-4 bg-gray-50">
+                        <h3 className="font-semibold text-gray-700 mb-2">Review Information</h3>
+
+                        {formData.submittedBy && (
+                            <div className="text-sm mb-1">
+                                <span className="font-medium">Submitted by:</span> {formData.submittedBy}
+                                {formData.submittedAt && (
+                                    <span className="ml-1 text-gray-500">
+                                        on {new Date(formData.submittedAt).toLocaleString()}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+
+                        {formData.reviewedBy && (
+                            <div className="text-sm mb-1">
+                                <span className="font-medium">Reviewed by:</span> {formData.reviewedBy}
+                                {formData.reviewedAt && (
+                                    <span className="ml-1 text-gray-500">
+                                        on {new Date(formData.reviewedAt).toLocaleString()}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+
+                        {formData.comments && (
+                            <div className="mt-2">
+                                <span className="font-medium text-sm">Comments:</span>
+                                <div className="p-2 bg-white border border-gray-300 rounded mt-1 text-sm">
+                                    {formData.comments}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+                <div className="p-4 bg-gray-100 flex justify-between">
+                    <button
+                        type="button"
+                        onClick={() => navigate('/forms')}
+                        className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-gray-300"
+                    >
+                        Back to Forms
+                    </button>
+
+                    <div className="space-x-2">
+                        <button
+                            type="button"
+                            onClick={() => window.print()}
+                            className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                        >
+                            Print
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const element = document.querySelector('form');
+                                const blob = new Blob([element.outerHTML], { type: 'text/html' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `inspection_form_${formData.documentNo || 'form'}.html`;
+                                a.click();
+                                URL.revokeObjectURL(url);
+                            }}
+                            className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-teal-300"
+                        >
+                            Download
+                        </button>
+
+                        {permissions.canReject && (
                             <button
                                 type="button"
-                                onClick={() => navigate('/forms')}
-                                className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-gray-300"
+                                onClick={rejectForm}
+                                disabled={saving}
+                                className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-300 disabled:bg-red-300"
                             >
-                                Back to Forms
+                                Reject
                             </button>
-                            
-                            {/* Add Print Button - Only visible when form is approved */}
-                            {formData.status === 'APPROVED' && formData.reviewedBy && (
-                                <button
-                                    type="button"
-                                    onClick={handlePrint}
-                                    className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-yellow-300 flex items-center"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                                    </svg>
-                                    Print Tables
-                                </button>
-                            )}
-                        </div>
-                        
-                        <div className="space-x-2">
-                            {permissions.canReject && (
-                                <button
-                                    type="button"
-                                    onClick={rejectForm}
-                                    disabled={saving}
-                                    className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-300 disabled:bg-red-300"
-                                >
-                                    Reject
-                                </button>
-                            )}
-                            
-                            {permissions.canApprove && (
-                                <button
-                                    type="button"
-                                    onClick={approveForm}
-                                    disabled={saving}
-                                    className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-green-300"
-                                >
-                                    Approve
-                                </button>
-                            )}
-                            
-                            {permissions.canSubmit && formData.status === 'DRAFT' && (
-                                <button
-                                    type="button"
-                                    onClick={submitForm}
-                                    disabled={saving}
-                                    className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:bg-blue-300"
-                                >
-                                    Submit for Approval
-                                </button>
-                            )}
-                            
-                            {/* Always show save button if user can edit anything */}
-                            {(permissions.canEditDocumentInfo || 
-                              permissions.canEditInspectionDetails || 
-                              permissions.canEditLacquers || 
-                              permissions.canEditCharacteristics) && (
+                        )}
+
+                        {permissions.canApprove && (
+                            <button
+                                type="button"
+                                onClick={approveForm}
+                                disabled={saving}
+                                className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-green-300"
+                            >
+                                Approve
+                            </button>
+                        )}
+
+                        {permissions.canSubmit && formData.status === 'DRAFT' && (
+                            <button
+                                type="button"
+                                onClick={submitForm}
+                                disabled={saving}
+                                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:bg-blue-300"
+                            >
+                                Submit for Approval
+                            </button>
+                        )}
+
+                        {(permissions.canEditDocumentInfo ||
+                            permissions.canEditInspectionDetails ||
+                            permissions.canEditLacquers ||
+                            permissions.canEditCharacteristics) && (
                                 <button
                                     type="submit"
                                     disabled={saving}
@@ -1116,11 +911,11 @@ const EditableInspectionForm = () => {
                                     {saving ? 'Saving...' : 'Save Changes'}
                                 </button>
                             )}
-                        </div>
                     </div>
-                </form>
-            </div>
-        );
-    };
-    
-    export default EditableInspectionForm;
+                </div>
+            </form>
+        </div>
+    );
+};
+
+export default EditableInspectionForm;

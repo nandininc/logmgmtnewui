@@ -85,38 +85,6 @@ const QADashboard = ({ user, onLogout }) => {
       ) : (
         <>
           {/* Forms Pending Review */}
-                    {/* QA Metrics */}
-                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <dt className="text-sm font-medium text-gray-500 truncate">Forms Reviewed Today</dt>
-                <dd className="mt-1 text-3xl font-semibold text-gray-900">{
-                  recentForms.filter(form => {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const reviewDate = new Date(form.reviewedAt);
-                    reviewDate.setHours(0, 0, 0, 0);
-                    return reviewDate.getTime() === today.getTime();
-                  }).length
-                }</dd>
-              </div>
-            </div>
-            
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <dt className="text-sm font-medium text-gray-500 truncate">Average Review Time</dt>
-                <dd className="mt-1 text-3xl font-semibold text-gray-900">1.5h</dd>
-              </div>
-            </div>
-            
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <dt className="text-sm font-medium text-gray-500 truncate">Pending Reviews</dt>
-                <dd className="mt-1 text-3xl font-semibold text-gray-900">{pendingForms.length}</dd>
-              </div>
-            </div>
-          </div>
-          
           <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
             <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
               <div>
@@ -176,7 +144,38 @@ const QADashboard = ({ user, onLogout }) => {
             )}
           </div>
           
-
+          {/* QA Metrics */}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <dt className="text-sm font-medium text-gray-500 truncate">Forms Reviewed Today</dt>
+                <dd className="mt-1 text-3xl font-semibold text-gray-900">{
+                  recentForms.filter(form => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const reviewDate = new Date(form.reviewedAt);
+                    reviewDate.setHours(0, 0, 0, 0);
+                    return reviewDate.getTime() === today.getTime();
+                  }).length
+                }</dd>
+              </div>
+            </div>
+            
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <dt className="text-sm font-medium text-gray-500 truncate">Average Review Time</dt>
+                <dd className="mt-1 text-3xl font-semibold text-gray-900">1.5h</dd>
+              </div>
+            </div>
+            
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <dt className="text-sm font-medium text-gray-500 truncate">Pending Reviews</dt>
+                <dd className="mt-1 text-3xl font-semibold text-gray-900">{pendingForms.length}</dd>
+              </div>
+            </div>
+          </div>
+          
           {/* Recently Reviewed Forms */}
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">
             <div className="px-4 py-5 sm:px-6">
@@ -237,6 +236,27 @@ const QADashboard = ({ user, onLogout }) => {
               </div>
             )}
           </div>
+          
+          {/* Quick Actions
+          <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg font-medium text-gray-900">Quick Actions</h3>
+              <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <button
+                  onClick={handleViewAllForms}
+                  className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  View All Forms
+                </button>
+                <button
+                  onClick={handleGenerateReports}
+                  className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  Generate Quality Reports
+                </button>
+              </div>
+            </div>
+          </div> */}
           
           {/* Data Refresh Indicator */}
           <div className="mt-4 text-right text-xs text-gray-500">

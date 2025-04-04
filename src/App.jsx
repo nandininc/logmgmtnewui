@@ -30,8 +30,13 @@ const InspectionFormLayout = ({ user, onLogout, children }) => {
       <header className="bg-blue-300 shadow mb-4">
         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <div className="flex items-center">
-            <div className="font-bold text-2xl">AGI</div>
-            <div className="ml-2 text-sm font-bold">E-Log</div>
+            <div className="flex justify-center">
+              <img
+                src="https://camo.githubusercontent.com/23528efa2ac40a4438536df8a46ff30e8d90f42a342b6bf6dbb6decb55ab8e86/68747470733a2f2f656e637279707465642d74626e302e677374617469632e636f6d2f696d616765733f713d74626e3a414e64394763517336636a7049706377394a4c4d4b6b796d3366506a746d563163506b533535784e66512673"
+                alt="AGI Logo"
+                className="w-16 h-auto"
+              />
+            </div>
           </div>
           <div className="flex items-center">
             <button
@@ -160,7 +165,7 @@ const AuthRouter = () => {
           </InspectionFormLayout>
         ) : <Navigate to="/" replace />
       } />
-        <Route path="/ViewInspectionForm-form/:id" element={
+      <Route path="/ViewInspectionForm-form/:id" element={
         isAuthenticated ? (
           <InspectionFormLayout user={user} onLogout={logout}>
             <EditableInspectionForm />

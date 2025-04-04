@@ -40,18 +40,25 @@ export const TopNavBar = ({ user, onLogout }) => {
     return (
         <header className={`shadow fixed top-0 w-full ${getBgColorByRole(user.role)}`}>
             <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
- 
-            <div className="flex items-center">
-  <div className="font-bold text-3xl relative">
-    <span className="text-purple-600">A</span>
-    <span className="text-fuchsia-500">G</span>
-    <span className="text-pink-500">I</span>
-    <div className="w-full h-1.5 bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 rounded-full mt-1"></div>
-  </div>
-  <div className="bg-yellow-400 ml-3 px-2 py-0.5 rounded-sm transform -rotate-2">
-    <span className="text-sm font-extrabold uppercase tracking-wider text-gray-800">E-log</span>
-  </div>
-</div>
+
+                <div className="flex items-center">
+                    {/* <div className="font-bold text-3xl relative">
+                        <span className="text-purple-600">A</span>
+                        <span className="text-fuchsia-500">G</span>
+                        <span className="text-pink-500">I</span>
+                        <div className="w-full h-1.5 bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 rounded-full mt-1"></div>
+                    </div>
+                    <div className="bg-yellow-400 ml-3 px-2 py-0.5 rounded-sm transform -rotate-2">
+                        <span className="text-sm font-extrabold uppercase tracking-wider text-gray-800">E-log</span>
+                    </div> */}
+                    <div className=" flex justify-center">
+                        <img
+                            src="https://camo.githubusercontent.com/23528efa2ac40a4438536df8a46ff30e8d90f42a342b6bf6dbb6decb55ab8e86/68747470733a2f2f656e637279707465642d74626e302e677374617469632e636f6d2f696d616765733f713d74626e3a414e64394763517336636a7049706377394a4c4d4b6b796d3366506a746d563163506b533535784e66512673"
+                            alt="AGI Logo"
+                            className="w-16 h-auto"
+                        />
+                    </div>
+                </div>
 
                 <div className="flex items-center gap-2">
                     <Avatar alt={user.name} src={user.avatarUrl || ''} />

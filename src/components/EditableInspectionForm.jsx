@@ -26,7 +26,7 @@ const EditableInspectionForm = () => {
 
     // State for form data
     const [formData, setFormData] = useState({
-        documentNo: '',
+        documentNo: 'AGI-APR-01',
         issuanceNo: '00',
         issueDate: new Date().toISOString().split('T')[0],
         reviewedDate: new Date(new Date().setFullYear(new Date().getFullYear() + 3)).toISOString().split('T')[0],
@@ -214,6 +214,15 @@ const EditableInspectionForm = () => {
 
             // Add operator info if missing
             let updatedFormData = { ...formData };
+
+            // Add submission information (user name and timestamp)
+            updatedFormData = {
+                ...updatedFormData,
+                submittedBy: user.name,
+                submittedAt: new Date().toISOString(),
+            };
+
+            // Add operator signature if user is operator
             if (user.role === 'operator' && !updatedFormData.productionOperator) {
                 updatedFormData = {
                     ...updatedFormData,
@@ -552,15 +561,14 @@ const EditableInspectionForm = () => {
                         <div className="border-r border-gray-800">
                             <div className="border-b border-gray-800 p-2">
                                 <span className="font-semibold">Shift: </span>
-                                {formData.status === 'APPROVED' ? (
+                                {formData.status === 'APPROVED' || !permissions.canEditInspectionDetails ? (
                                     <span>{formData.shift}</span>
                                 ) : (
                                     <select
                                         name="shift"
                                         value={formData.shift}
                                         onChange={handleChange}
-                                        disabled={!permissions.canEditInspectionDetails}
-                                        className="px-2 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                        className="px-2 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                                     >
                                         {shiftOptions.map(option => (
                                             <option key={option} value={option}>{option}</option>
@@ -570,15 +578,14 @@ const EditableInspectionForm = () => {
                             </div>
                             <div className="border-b border-gray-800 p-2">
                                 <span className="font-semibold">Variant: </span>
-                                {formData.status === 'APPROVED' ? (
+                                {formData.status === 'APPROVED' || !permissions.canEditInspectionDetails ? (
                                     <span>{formData.variant}</span>
                                 ) : (
                                     <select
                                         name="variant"
                                         value={formData.variant}
                                         onChange={handleChange}
-                                        disabled={!permissions.canEditInspectionDetails}
-                                        className="px-2 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                        className="px-2 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                                     >
                                         {variantOptions.map(option => (
                                             <option key={option} value={option}>{option}</option>
@@ -591,15 +598,14 @@ const EditableInspectionForm = () => {
                         <div>
                             <div className="border-b border-gray-800 p-2">
                                 <span className="font-semibold">Line No.: </span>
-                                {formData.status === 'APPROVED' ? (
+                                {formData.status === 'APPROVED' || !permissions.canEditInspectionDetails ? (
                                     <span>{formData.lineNo}</span>
                                 ) : (
                                     <select
                                         name="lineNo"
                                         value={formData.lineNo}
                                         onChange={handleChange}
-                                        disabled={!permissions.canEditInspectionDetails}
-                                        className="px-2 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                        className="px-2 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                                     >
                                         {lineOptions.map(option => (
                                             <option key={option} value={option}>{option}</option>
@@ -609,7 +615,7 @@ const EditableInspectionForm = () => {
                             </div>
                             <div className="border-b border-gray-800 p-2">
                                 <span className="font-semibold">Customer: </span>
-                                {formData.status === 'APPROVED' ? (
+                                {formData.status === 'APPROVED' || !permissions.canEditInspectionDetails ? (
                                     <span>{formData.customer}</span>
                                 ) : (
                                     <input
@@ -617,14 +623,13 @@ const EditableInspectionForm = () => {
                                         name="customer"
                                         value={formData.customer}
                                         onChange={handleChange}
-                                        disabled={!permissions.canEditInspectionDetails}
-                                        className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                        className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                                     />
                                 )}
                             </div>
                             <div className="p-2">
                                 <span className="font-semibold">Sample Size: </span>
-                                {formData.status === 'APPROVED' ? (
+                                {formData.status === 'APPROVED' || !permissions.canEditInspectionDetails ? (
                                     <span>{formData.sampleSize}</span>
                                 ) : (
                                     <input
@@ -632,8 +637,7 @@ const EditableInspectionForm = () => {
                                         name="sampleSize"
                                         value={formData.sampleSize}
                                         onChange={handleChange}
-                                        disabled={!permissions.canEditInspectionDetails}
-                                        className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                        className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                                     />
                                 )}
                             </div>
@@ -665,14 +669,13 @@ const EditableInspectionForm = () => {
                                     <tr key={lacquer.id}>
                                         <td className="border border-gray-800 p-2 text-center">{lacquer.id}</td>
                                         <td className="border border-gray-800 p-2">
-                                            {formData.status === 'APPROVED' ? (
+                                            {formData.status === 'APPROVED' || !permissions.canEditLacquers ? (
                                                 <div className="px-1 py-1">{lacquer.name}</div>
                                             ) : (
                                                 <select
                                                     value={lacquer.name}
                                                     onChange={(e) => handleLacquerChange(index, 'name', e.target.value)}
-                                                    disabled={!permissions.canEditLacquers}
-                                                    className="w-full px-1 py-1 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                                    className="w-full px-1 py-1 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                                                 >
                                                     <option value="">Select Lacquer/Dye</option>
                                                     <option value="Clear Extn">Clear Extn</option>
@@ -739,8 +742,8 @@ const EditableInspectionForm = () => {
                         </tbody>
                     </table>
 
-                    {/* Add Row Button - Only show if not approved */}
-                    {formData.status !== 'APPROVED' && (
+                    // For the Add Row button in the Lacquer table
+                    {formData.status !== 'APPROVED' && permissions.canEditLacquers && (
                         <button
                             type="button"
                             onClick={() => {
@@ -758,8 +761,7 @@ const EditableInspectionForm = () => {
                                     lacquers: updatedLacquers
                                 });
                             }}
-                            disabled={!permissions.canEditLacquers}
-                            className="mt-2 flex items-center bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            className="mt-2 flex items-center bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded focus:outline-none focus:ring-2 focus:ring-green-300"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -894,42 +896,44 @@ const EditableInspectionForm = () => {
                 </div>
 
                 {/* Review Information */}
-                {(formData.status === 'SUBMITTED' || formData.status === 'APPROVED' || formData.status === 'REJECTED') && (
-                    <div className="border-x border-b border-gray-800 p-4 bg-gray-50">
-                        <h3 className="font-semibold text-gray-700 mb-2">Review Information</h3>
+                {
+                    (formData.status === 'SUBMITTED' || formData.status === 'APPROVED' || formData.status === 'REJECTED') && (
+                        <div className="border-x border-b border-gray-800 p-4 bg-gray-50">
+                            <h3 className="font-semibold text-gray-700 mb-2">Review Information</h3>
 
-                        {formData.submittedBy && (
-                            <div className="text-sm mb-1">
-                                <span className="font-medium">Submitted by:</span> {formData.submittedBy}
-                                {formData.submittedAt && (
-                                    <span className="ml-1 text-gray-500">
-                                        on {new Date(formData.submittedAt).toLocaleString()}
-                                    </span>
-                                )}
-                            </div>
-                        )}
-
-                        {formData.reviewedBy && (
-                            <div className="text-sm mb-1">
-                                <span className="font-medium">Reviewed by:</span> {formData.reviewedBy}
-                                {formData.reviewedAt && (
-                                    <span className="ml-1 text-gray-500">
-                                        on {new Date(formData.reviewedAt).toLocaleString()}
-                                    </span>
-                                )}
-                            </div>
-                        )}
-
-                        {formData.comments && (
-                            <div className="mt-2">
-                                <span className="font-medium text-sm">Comments:</span>
-                                <div className="p-2 bg-white border border-gray-300 rounded mt-1 text-sm">
-                                    {formData.comments}
+                            {formData.submittedBy && (
+                                <div className="text-sm mb-1">
+                                    <span className="font-medium">Submitted by:</span> {formData.submittedBy}
+                                    {formData.submittedAt && (
+                                        <span className="ml-1 text-gray-500">
+                                            on {new Date(formData.submittedAt).toLocaleString()}
+                                        </span>
+                                    )}
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                )}
+                            )}
+
+                            {formData.reviewedBy && (
+                                <div className="text-sm mb-1">
+                                    <span className="font-medium">Reviewed by:</span> {formData.reviewedBy}
+                                    {formData.reviewedAt && (
+                                        <span className="ml-1 text-gray-500">
+                                            on {new Date(formData.reviewedAt).toLocaleString()}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+
+                            {formData.comments && (
+                                <div className="mt-2">
+                                    <span className="font-medium text-sm">Comments:</span>
+                                    <div className="p-2 bg-white border border-gray-300 rounded mt-1 text-sm">
+                                        {formData.comments}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )
+                }
                 <div className="p-4 bg-gray-100 flex justify-between">
                     <button
                         type="button"
@@ -940,30 +944,35 @@ const EditableInspectionForm = () => {
                     </button>
 
                     <div className="space-x-2">
-                        <button
-                            type="button"
-                            onClick={() => window.print()}
-                            className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-yellow-300"
-                        >
-                            Print
-                        </button>
+                        {/* Only show Print and Download buttons if form is approved */}
+                        {formData.status === 'APPROVED' && (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => window.print()}
+                                    className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                                >
+                                    Print
+                                </button>
 
-                        <button
-                            type="button"
-                            onClick={() => {
-                                const element = document.querySelector('form');
-                                const blob = new Blob([element.outerHTML], { type: 'text/html' });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = `inspection_form_${formData.documentNo || 'form'}.html`;
-                                a.click();
-                                URL.revokeObjectURL(url);
-                            }}
-                            className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-teal-300"
-                        >
-                            Download
-                        </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const element = document.querySelector('form');
+                                        const blob = new Blob([element.outerHTML], { type: 'text/html' });
+                                        const url = URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.href = url;
+                                        a.download = `inspection_form_${formData.documentNo || 'form'}.html`;
+                                        a.click();
+                                        URL.revokeObjectURL(url);
+                                    }}
+                                    className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-teal-300"
+                                >
+                                    Download
+                                </button>
+                            </>
+                        )}
 
                         {permissions.canReject && (
                             <button
@@ -1007,13 +1016,13 @@ const EditableInspectionForm = () => {
                                     disabled={saving}
                                     className="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-indigo-300"
                                 >
-                                    {saving ? 'Saving...' : 'Save Changes'}
+                                    {saving ? 'Saving...' : 'Save As Draft'}
                                 </button>
                             )}
                     </div>
                 </div>
-            </form>
-        </div>
+            </form >
+        </div >
     );
 };
 

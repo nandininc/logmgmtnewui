@@ -105,7 +105,7 @@ const MasterDashboard = ({ user, onLogout }) => {
     });
 
     const statusCounts = ['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED'].reduce((acc, status) => {
-      acc[status] = forms.filter(f => f.status === status).length;
+      acc[status] = forms.filter(f => (f.status || '').toUpperCase().trim() === status).length;
       return acc;
     }, {});
 
@@ -127,13 +127,15 @@ const MasterDashboard = ({ user, onLogout }) => {
   const handleViewForm = (formId) => navigate(`/inspection-form/${formId}`);
 
   const getStatusClass = (status) => {
+    const key = (status || '').toUpperCase().trim();
     return {
       DRAFT: 'text-gray-600',
       SUBMITTED: 'text-blue-600',
       APPROVED: 'text-green-600',
       REJECTED: 'text-red-600'
-    }[status] || 'text-gray-600';
+    }[key] || 'text-gray-600';
   };
+
 
   const filteredForms = allForms.filter(form => {
     if (filterStatus !== 'all' && form.status !== filterStatus) return false;
@@ -194,26 +196,42 @@ const MasterDashboard = ({ user, onLogout }) => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white p-4 shadow rounded">
                   <h3 className="font-semibold mb-4">Form Status</h3>
-                  <Pie data={{
-                    labels: Object.keys(chartData.statusCounts),
-                    datasets: [{
-                      data: Object.values(chartData.statusCounts),
-                      backgroundColor: ['#60A5FA', '#34D399', '#F87171', '#D1D5DB']
-                    }]
-                  }} />
+
+                  {(() => {
+                    const statusOrder = ['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED'];
+                    const statusColors = {
+                      DRAFT: '#D1D5DB',
+                      SUBMITTED: '#60A5FA',
+                      APPROVED: '#34D399',
+                      REJECTED: '#F87171',
+                    };
+                    const pieData = {
+                      labels: statusOrder,
+                      datasets: [{
+                        data: statusOrder.map(status => chartData.statusCounts[status] || 0),
+                        backgroundColor: statusOrder.map(status => statusColors[status])
+                      }]
+                    };
+
+                    return <Pie data={pieData} />;
+                  })()}
                 </div>
 
                 <div className="bg-white p-4 shadow rounded">
                   <h3 className="font-semibold mb-4">Monthly Trends</h3>
-                  <Line data={{
-                    labels: chartData.last6Months,
-                    datasets: [
-                      { label: 'Submissions', data: chartData.monthlySubmissions, borderColor: '#60A5FA', fill: false },
-                      { label: 'Approvals', data: chartData.monthlyApprovals, borderColor: '#34D399', fill: false }
-                    ]
-                  }} />
+                  <Line
+                    data={{
+                      labels: chartData.last6Months,
+                      datasets: [
+                        { label: 'Submissions', data: chartData.monthlySubmissions, borderColor: '#60A5FA', fill: false },
+                        { label: 'Approvals', data: chartData.monthlyApprovals, borderColor: '#34D399', fill: false }
+                      ]
+                    }}
+                  />
                 </div>
               </div>
+
+
             )}
           </div>
         ) : (

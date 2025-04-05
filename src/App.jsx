@@ -34,7 +34,7 @@ const InspectionFormLayout = ({ user, onLogout, children }) => {
               <img
                 src="https://camo.githubusercontent.com/23528efa2ac40a4438536df8a46ff30e8d90f42a342b6bf6dbb6decb55ab8e86/68747470733a2f2f656e637279707465642d74626e302e677374617469632e636f6d2f696d616765733f713d74626e3a414e64394763517336636a7049706377394a4c4d4b6b796d3366506a746d563163506b533535784e66512673"
                 alt="AGI Logo"
-                className="w-16 h-auto"
+                className="w-16 *:after: h-auto"
               />
             </div>
           </div>

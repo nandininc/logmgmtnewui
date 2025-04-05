@@ -26,7 +26,7 @@ const EditableInspectionForm = () => {
 
     // State for form data
     const [formData, setFormData] = useState({
-        documentNo: 'AGI-APR-01',
+        documentNo: '',
         issuanceNo: '00',
         issueDate: new Date().toISOString().split('T')[0],
         reviewedDate: new Date(new Date().setFullYear(new Date().getFullYear() + 3)).toISOString().split('T')[0],
@@ -109,8 +109,6 @@ const EditableInspectionForm = () => {
             const isApproved = formData.status === 'APPROVED';
             const isRejected = formData.status === 'REJECTED';
 
-            const isCreator = formData.submittedBy === user.name;
-
             setPermissions({
                 // Admin can edit anything
                 canEditDocumentInfo: isMaster || (isOperator && isDraft),
@@ -135,6 +133,8 @@ const EditableInspectionForm = () => {
             });
         }
     }, [user, formData]);
+
+    
 
     // Variant options
     const variantOptions = ['Pink matt', 'Blue matt', 'Green matt', 'Yellow matt'];
@@ -274,23 +274,69 @@ const EditableInspectionForm = () => {
     };
 
     // Approve the form
+    // const approveForm = async () => {
+    //     if (!id) return;
+
+    //     try {
+    //         setSaving(true);
+
+    //         // Add QA info if missing
+    //         if (user.role === 'avp' && !formData.qaExecutive) {
+    //             setFormData({
+    //                 ...formData,
+    //                 qaExecutive: user.name,
+    //                 qaSignature: `signed_by_${user.name.toLowerCase().replace(/\s/g, '_')}`
+    //             });
+    //         }
+
+    //         const comments = window.prompt('Add any approval comments (optional):');
+    //         const result = await inspectionFormAPI.approveForm(id, user.name, comments || '');
+
+    //         alert('Form approved successfully!');
+    //         navigate('/forms');
+
+    //         return result;
+    //     } catch (error) {
+    //         console.error('Error approving form:', error);
+    //         alert('Failed to approve form. Please try again.');
+    //     } finally {
+    //         setSaving(false);
+    //     }
+    // };
+
+    // Approve the form
     const approveForm = async () => {
         if (!id) return;
 
         try {
             setSaving(true);
 
-            // Add QA info if missing
-            if (user.role === 'avp' && !formData.qaExecutive) {
-                setFormData({
-                    ...formData,
+            // Create an updated form data object with QA info
+            let updatedFormData = { ...formData };
+
+            // Always set the QA signature when AVP approves the form
+            if (user.role === 'avp') {
+                updatedFormData = {
+                    ...updatedFormData,
                     qaExecutive: user.name,
-                    qaSignature: `signed_by_${user.name.toLowerCase().replace(/\s/g, '_')}`
-                });
+                    qaSignature: `signed_by_${user.name.toLowerCase().replace(/\s/g, '_')}`,
+                    finalApprovalTime: new Date().toLocaleTimeString()
+                };
+
+                // Update the local state immediately for UI display
+                setFormData(updatedFormData);
             }
 
             const comments = window.prompt('Add any approval comments (optional):');
+
+            // First update the form with the signature information
+            const updatedForm = await inspectionFormAPI.updateForm(id, updatedFormData);
+
+            // Then approve the form
             const result = await inspectionFormAPI.approveForm(id, user.name, comments || '');
+
+            // Update local state with the returned data from the server
+            setFormData(result);
 
             alert('Form approved successfully!');
             navigate('/forms');
@@ -382,7 +428,7 @@ const EditableInspectionForm = () => {
                                                 name="documentNo"
                                                 value={formData.documentNo}
                                                 onChange={handleChange}
-                                                disabled={!permissions.canEditDocumentInfo}
+                                                disabled={true}
                                                 className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
                                             />
                                         </td>
@@ -742,7 +788,7 @@ const EditableInspectionForm = () => {
                         </tbody>
                     </table>
 
-                    // For the Add Row button in the Lacquer table
+                    {/* // For the Add Row button in the Lacquer table */}
                     {formData.status !== 'APPROVED' && permissions.canEditLacquers && (
                         <button
                             type="button"
@@ -856,7 +902,7 @@ const EditableInspectionForm = () => {
                 {/* Footer */}
                 <div className="border-x border-b border-gray-800">
                     <div className="flex justify-between items-center p-4">
-                        <div className="flex items-center">
+                        {/* <div className="flex items-center">
                             <div className="font-semibold mr-2">QA Exe.</div>
                             <div className="w-16">
                                 {formData.qaSignature ? (
@@ -874,6 +920,70 @@ const EditableInspectionForm = () => {
                             <div className="w-16">
                                 {formData.operatorSignature ? (
                                     <img src={OperatorSign} alt="Operator Signature" />
+                                ) : (
+                                    <div className="h-12 border border-dashed border-gray-400 flex items-center justify-center">
+                                        <span className="text-xs text-gray-500">No signature</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div> */}
+
+                        {/* // ===== QA Signature Display ===== */}
+                        <div className="flex items-center">
+                            <div className="font-semibold mr-2">QA Exe.</div>
+                            <div className="w-16">
+                                {formData.qaSignature ? (
+                                    <div className="h-12 flex items-center">
+                                        {/* Attempt to load the image */}
+                                        <img
+                                            src={QASign}
+                                            alt="QA Signature"
+                                            onError={(e) => {
+                                                console.error('Failed to load QA signature image');
+                                                e.target.style.display = 'none';
+                                                e.target.nextSibling.style.display = 'flex';
+                                            }}
+                                        />
+                                        {/* Fallback if image fails to load */}
+                                        <div
+                                            className="h-12 border border-dashed border-gray-400 hidden items-center justify-center w-full"
+                                            title={`Signed by: ${formData.qaExecutive}`}
+                                        >
+                                            <span className="text-xs text-gray-500">Signed digitally</span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="h-12 border border-dashed border-gray-400 flex items-center justify-center">
+                                        <span className="text-xs text-gray-500">No signature</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* // ===== Operator Signature Display ===== */}
+                        <div className="flex items-center">
+                            <div className="font-semibold mr-2">Production Sup. / Operator:</div>
+                            <div className="w-16">
+                                {formData.operatorSignature ? (
+                                    <div className="h-12 flex items-center">
+                                        {/* Attempt to load the image */}
+                                        <img
+                                            src={OperatorSign}
+                                            alt="Operator Signature"
+                                            onError={(e) => {
+                                                console.error('Failed to load Operator signature image');
+                                                e.target.style.display = 'none';
+                                                e.target.nextSibling.style.display = 'flex';
+                                            }}
+                                        />
+                                        {/* Fallback if image fails to load */}
+                                        <div
+                                            className="h-12 border border-dashed border-gray-400 hidden items-center justify-center w-full"
+                                            title={`Signed by: ${formData.productionOperator}`}
+                                        >
+                                            <span className="text-xs text-gray-500">Signed digitally</span>
+                                        </div>
+                                    </div>
                                 ) : (
                                     <div className="h-12 border border-dashed border-gray-400 flex items-center justify-center">
                                         <span className="text-xs text-gray-500">No signature</span>
@@ -935,13 +1045,13 @@ const EditableInspectionForm = () => {
                     )
                 }
                 <div className="p-4 bg-gray-100 flex justify-between">
-                    <button
+                    {/* <button
                         type="button"
                         onClick={() => navigate('/forms')}
                         className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-gray-300"
                     >
                         Back to Forms
-                    </button>
+                    </button> */}
 
                     <div className="space-x-2">
                         {/* Only show Print and Download buttons if form is approved */}
@@ -1010,7 +1120,7 @@ const EditableInspectionForm = () => {
                         {(permissions.canEditDocumentInfo ||
                             permissions.canEditInspectionDetails ||
                             permissions.canEditLacquers ||
-                            permissions.canEditCharacteristics) && (
+                            (permissions.canEditCharacteristics)) && (
                                 <button
                                     type="submit"
                                     disabled={saving}
@@ -1018,7 +1128,8 @@ const EditableInspectionForm = () => {
                                 >
                                     {saving ? 'Saving...' : 'Save As Draft'}
                                 </button>
-                            )}
+                            )
+                        }
                     </div>
                 </div>
             </form >

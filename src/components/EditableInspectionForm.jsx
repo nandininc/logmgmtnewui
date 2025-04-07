@@ -50,6 +50,14 @@ const EditableInspectionForm = () => {
             { id: 5, name: 'Violet Dye', weight: '', batchNo: '', expiryDate: '' },
             { id: 6, name: 'Matt Bath', weight: '', batchNo: '', expiryDate: '' },
             { id: 7, name: 'Hardener', weight: '', batchNo: '', expiryDate: '' },
+            { id: 8, name: '', weight: '', batchNo: '', expiryDate: '' },
+            { id: 1, name: 'Clear Extn', weight: '', batchNo: '', expiryDate: '' },
+            { id: 2, name: 'Red Dye', weight: '', batchNo: '', expiryDate: '' },
+            { id: 3, name: 'Black Dye', weight: '', batchNo: '', expiryDate: '' },
+            { id: 4, name: 'Pink Dye', weight: '', batchNo: '', expiryDate: '' },
+            { id: 5, name: 'Violet Dye', weight: '', batchNo: '', expiryDate: '' },
+            { id: 6, name: 'Matt Bath', weight: '', batchNo: '', expiryDate: '' },
+            { id: 7, name: 'Hardener', weight: '', batchNo: '', expiryDate: '' },
             { id: 8, name: '', weight: '', batchNo: '', expiryDate: '' }
         ],
         characteristics: [
@@ -134,7 +142,7 @@ const EditableInspectionForm = () => {
         }
     }, [user, formData]);
 
-    
+
 
     // Variant options
     const variantOptions = ['Pink matt', 'Blue matt', 'Green matt', 'Yellow matt'];
@@ -1079,7 +1087,21 @@ const EditableInspectionForm = () => {
                                     }}
                                     className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-teal-300"
                                 >
-                                    Download
+                                    Download HTML
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        try {
+                                            await inspectionFormAPI.downloadPdf(id);
+                                        } catch (error) {
+                                            alert('Failed to download PDF. Please try again.');
+                                        }
+                                    }}
+                                    className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-300"
+                                >
+                                    Download PDF
                                 </button>
                             </>
                         )}

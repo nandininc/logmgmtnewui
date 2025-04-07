@@ -36,7 +36,7 @@ export const inspectionFormAPI = {
       throw error;
     }
   },
-  
+
   // Get form by ID
   getFormById: async (id) => {
     try {
@@ -46,7 +46,7 @@ export const inspectionFormAPI = {
       throw error;
     }
   },
-  
+
   // Get forms by status
   getFormsByStatus: async (status) => {
     try {
@@ -56,7 +56,7 @@ export const inspectionFormAPI = {
       throw error;
     }
   },
-  
+
   // Get forms by submitter
   getFormsBySubmitter: async (submitter) => {
     try {
@@ -66,7 +66,7 @@ export const inspectionFormAPI = {
       throw error;
     }
   },
-  
+
   // Create new form
   createForm: async (formData) => {
     try {
@@ -76,7 +76,7 @@ export const inspectionFormAPI = {
       throw error;
     }
   },
-  
+
   // Update existing form
   updateForm: async (id, formData) => {
     try {
@@ -86,7 +86,7 @@ export const inspectionFormAPI = {
       throw error;
     }
   },
-  
+
   // Submit form for approval
   submitForm: async (id, submittedBy) => {
     try {
@@ -98,7 +98,7 @@ export const inspectionFormAPI = {
       throw error;
     }
   },
-  
+
   // Approve form
   approveForm: async (id, reviewedBy, comments = '') => {
     try {
@@ -110,7 +110,7 @@ export const inspectionFormAPI = {
       throw error;
     }
   },
-  
+
   // Reject form
   rejectForm: async (id, reviewedBy, comments) => {
     try {
@@ -119,6 +119,43 @@ export const inspectionFormAPI = {
       });
       return response.data;
     } catch (error) {
+      throw error;
+    }
+  },
+
+  downloadPdf: async (id) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/inspection-forms/${id}/pdf`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/pdf'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+      
+      // Get the PDF content as a blob
+      const blob = await response.blob();
+      
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary anchor element to trigger the download
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `inspection_form_${id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      return true;
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
       throw error;
     }
   }
@@ -135,7 +172,7 @@ export const userAPI = {
       throw error;
     }
   },
-  
+
   // Get user by role
   getUsersByRole: async (role) => {
     try {
